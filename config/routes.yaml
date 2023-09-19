@@ -3,3 +3,13 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+# config/routes.yaml
+app_register:
+    path: /api/register
+    controller: App\Controller\RegistrationController::register
+    methods: ['POST']
+
+login:
+    path: /api/login
+    controller: App\Controller\AuthenticationController::login
+    methods: ['POST']
