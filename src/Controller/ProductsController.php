@@ -53,12 +53,9 @@ class ProductsController extends AbstractController
     #[Route('/api/products', name: 'create_product', methods: ['POST'])]
     public function createProduct(Request $request): JsonResponse
     {
-        // Deserialize the JSON request data into an associative array
         $requestData = json_decode($request->getContent(), true);
 
-        // Validate the request data (add validation logic as needed)
 
-        // Create a new Product entity and populate it with the request data
         $product = new Products();
         $product->setProductName($requestData['productName']);
         $product->setProductCode($requestData['productCode']);
@@ -68,11 +65,9 @@ class ProductsController extends AbstractController
         $product->setStarRating($requestData['starRating']);
         $product->setImageUrl($requestData['imageUrl']);
 
-        // Save the new product to the database
         $this->entityManager->persist($product);
         $this->entityManager->flush();
 
-        // Return a success response
         return new JsonResponse(['message' => 'Product created successfully'], JsonResponse::HTTP_CREATED);
     }
 
@@ -85,10 +80,8 @@ class ProductsController extends AbstractController
             return new JsonResponse(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
-        // Deserialize the JSON request data into an associative array
         $requestData = json_decode($request->getContent(), true);
 
-        // Update the product properties based on the request data
         $product->setProductName($requestData['productName']);
         $product->setProductCode($requestData['productCode']);
         $product->setReleaseDate($requestData['releaseDate']);
@@ -97,10 +90,8 @@ class ProductsController extends AbstractController
         $product->setStarRating($requestData['starRating']);
         $product->setImageUrl($requestData['imageUrl']);
 
-        // Save the updated product to the database
         $this->entityManager->flush();
 
-        // Return a success response
         return new JsonResponse(['message' => 'Product updated successfully'], JsonResponse::HTTP_OK);
     }
 
@@ -113,18 +104,15 @@ class ProductsController extends AbstractController
             return new JsonResponse(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
-        // Remove the product from the database
         
         $this->entityManager->remove($product);
         $this->entityManager->flush();
 
-        // Return a success response
         return new JsonResponse(['message' => 'Product deleted successfully'], JsonResponse::HTTP_OK);
     }
 
 
 
-    // Helper method to serialize a Product entity to an array
     private function serializeProduct(Products $product): array
     {
         return [
