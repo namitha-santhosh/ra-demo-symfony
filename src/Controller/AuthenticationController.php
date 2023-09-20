@@ -44,7 +44,9 @@ class AuthenticationController extends AbstractController
         $token = new UsernamePasswordToken($user, $password, $roles);
         $tokenStorage->setToken($token);
 
-        return new JsonResponse(['message' => 'Login successful'], 200);
+        $fullName = $user->getFullName();
+
+        return new JsonResponse(['message' => 'Login successful', 'fullName' => $fullName], 200);
     }
 
 
