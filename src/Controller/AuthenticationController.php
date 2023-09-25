@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,10 +16,12 @@ use Doctrine\ORM\EntityManagerInterface;
 class AuthenticationController extends AbstractController
 {
     private $entityManager;
+    private $jwtTokenManager;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, JWTTokenManagerInterface $jwtTokenManager)
     {
         $this->entityManager = $entityManager;
+        $this->jwtTokenManager = $jwtTokenManager;
     }
 
     /**
@@ -39,14 +42,19 @@ class AuthenticationController extends AbstractController
             return new JsonResponse(['message' => 'Invalid password'], 401);
         }
 
-        $password = $data['password']; // Get the password from the request data
-        $roles = $user->getRoles(); // Convert the single role to an array
-        $token = new UsernamePasswordToken($user, $password, $roles);
-        $tokenStorage->setToken($token);
-
         $fullName = $user->getFullName();
 
-        return new JsonResponse(['message' => 'Login successful', 'fullName' => $fullName], 200);
+
+        // Generate a JWT token for the authenticated user
+        $token = $this->jwtTokenManager->create($user);
+
+        // Store the JWT token in the response
+        $response = new JsonResponse(['message' => 'Login successful', 'fullName' => $fullName]);
+        $response->headers->set('Authorization', 'Bearer ' . $token);
+
+        return $response;
+
+        //return new JsonResponse(['message' => 'Login successful', 'fullName' => $fullName], 200);
     }
 
 

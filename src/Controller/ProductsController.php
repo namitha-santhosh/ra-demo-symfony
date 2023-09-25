@@ -27,8 +27,9 @@ class ProductsController extends AbstractController
     }
 
     #[Route('/api/products', name: 'products', methods: ['GET'])]
-    public function getProducts(): JsonResponse
+    public function getProducts(Request $request): JsonResponse
     {
+        $token = $request->headers->get('Authorization');
         $products = $this->productsRepository->findAll();
 
         $productsArray = [];

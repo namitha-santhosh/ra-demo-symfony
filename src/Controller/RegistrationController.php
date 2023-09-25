@@ -9,26 +9,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\User;
 use Symfony\Component\Routing\Annotation\Route; 
 
+
 class RegistrationController extends AbstractController
 {
-
-    #[Route('/api/checkUser', name:'checkUser', methods: ['GET'])]
-    public function checkUser(Request $request, EntityManagerInterface $entityManager):JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-
-        // Check if the email already exists
-        $userRepository = $entityManager->getRepository(User::class);
-        $existingUser = $userRepository->findOneBy(['email' => $data['email']]);
-
-        if ($existingUser) {
-            return new JsonResponse(['message' => 'An account with this email already exists. Please log in.'], 400);
-        }
-
-         // Return a response indicating that the email is available
-        return new JsonResponse(['message' => 'Email is available'], 200);
-
-    }
 
     #[Route('/api/register', name:'register', methods: ['POST'])]
 

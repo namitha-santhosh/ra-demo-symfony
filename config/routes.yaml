@@ -13,3 +13,16 @@ login:
     path: /api/login
     controller: App\Controller\AuthenticationController::login
     methods: ['POST']
+
+api_login_check:
+    path: /api/login_check
+
+app.swagger:
+    path: /doc.json
+    methods: GET
+    defaults: { _controller: nelmio_api_doc.controller.swagger }
+
+app.swagger_ui:
+    path: /doc
+    methods: GET
+    defaults: { _controller: nelmio_api_doc.controller.swagger_ui }
