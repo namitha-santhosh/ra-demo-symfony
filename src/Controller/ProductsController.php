@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Products;
+use App\Entity\Category;
 use App\Repository\ProductsRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -67,6 +68,12 @@ class ProductsController extends AbstractController
         $description = $request->request->get('description');
         $price = $request->request->get('price');
         $starRating = $request->request->get('starRating');
+        $categoryName = $request->request->get('categoryName');
+        $category = $this->entityManager->getRepository(Category::class)->findOneBy(['name' => $categoryName]);
+
+        if (!$category) {
+            return new JsonResponse(['message' => 'Category not found'], JsonResponse::HTTP_NOT_FOUND);
+        }
 
         // Handle image upload
         $uploadedImage = $request->files->get('image');
@@ -94,6 +101,7 @@ class ProductsController extends AbstractController
         $product->setPrice($price);
         $product->setStarRating($starRating);
         $product->setImageUrl($imageUrl);
+        $product->setCategory($category);
 
         $this->entityManager->persist($product);
         $this->entityManager->flush();

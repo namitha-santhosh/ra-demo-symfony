@@ -18,6 +18,7 @@ class ProductFixtures extends Fixture
         $product->setPrice(19.95);
         $product->setstarRating(3.2);
         $product->setImageUrl("assets/images/leaf_rake.png");
+        $product->setCategory($this->getReference('category_3'));
 
         $manager->persist($product);
 
@@ -29,6 +30,7 @@ class ProductFixtures extends Fixture
         $product2->setPrice(32.99);
         $product2->setstarRating(4.2);
         $product2->setImageUrl("assets/images/garden_cart.png");
+        $product2->setCategory($this->getReference('category_3'));
         $manager->persist($product2);
 
         $product3 = new Products();
@@ -39,6 +41,7 @@ class ProductFixtures extends Fixture
         $product3->setPrice(8.9);
         $product3->setstarRating(4.8);
         $product3->setImageUrl("assets/images/hammer.png");
+        $product3->setCategory($this->getReference('category_3'));
         $manager->persist($product3);
 
         $product4 = new Products();
@@ -49,6 +52,7 @@ class ProductFixtures extends Fixture
         $product4->setPrice(11.55);
         $product4->setstarRating(3.7);
         $product4->setImageUrl("assets/images/saw.png");
+        $product4->setCategory($this->getReference('category_3'));
         $manager->persist($product4);
 
         $product5= new Products();
@@ -59,6 +63,7 @@ class ProductFixtures extends Fixture
         $product5->setPrice(35.95);
         $product5->setstarRating(4.6);
         $product5->setImageUrl("assets/images/xbox-controller.png");
+        $product5->setCategory($this->getReference('category_1'));
         $manager->persist($product5);
 
         $manager->flush();
