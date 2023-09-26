@@ -131,6 +131,19 @@ class ProductsController extends AbstractController
         $product->setStarRating($requestData['starRating']);
         $product->setImageUrl($requestData['imageUrl']);
 
+        
+        // Set the categoryId from the request data
+        $categoryId = $requestData['categoryId'];
+
+        // Find the category by ID (assuming you have a repository for categories)
+        $category = $this->entityManager->getRepository(Category::class)->find($categoryId);
+    
+        if (!$category) {
+            return new JsonResponse(['error' => 'Category not found'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $product->setCategory($category);
+
         $this->entityManager->flush();
 
         return new JsonResponse(['message' => 'Product updated successfully'], JsonResponse::HTTP_OK);
