@@ -3,11 +3,15 @@
 // src/Controller/ProductController.php
 namespace App\Controller;
 
+use App\Entity\Category;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
+
 
 class CategoryController extends AbstractController
 {
@@ -60,5 +64,21 @@ class CategoryController extends AbstractController
 
         return new JsonResponse($productsData);
 
+    }
+
+    #[Route("/api/add-category", name:"addcategory", methods:['POST'])]
+    public function addCategory(Request $request): JsonResponse{
+        $data = json_decode($request->getContent(), true);
+
+        // Validate and process the data as needed
+        $category = new Category();
+        $category->setName($data['name']);
+
+        // Save the category to the database
+        $this->entityManager->persist($category);
+        $this->entityManager->flush();
+
+        // Return a success response or handle errors
+        return $this->json(['message' => 'Category created successfully'], Response::HTTP_CREATED);
     }
 }

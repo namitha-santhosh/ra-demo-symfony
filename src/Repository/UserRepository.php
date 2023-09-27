@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Cart;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,6 +40,23 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
+    
+    /**
+     * Find the user's cart by user ID.
+     *
+     * @param int $userId
+     * @return User|null
+     */
+    public function findUserCart(int $userId)
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.cart', 'cart')
+            ->addSelect('cart')
+            ->where('u.id = :userId')
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 //    /**
 //     * @return User[] Returns an array of User objects
 //     */
