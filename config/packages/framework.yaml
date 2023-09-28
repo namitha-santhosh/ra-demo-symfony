@@ -21,6 +21,7 @@ framework:
 
     assets:
         base_path: /public
+        
 
 
 when@test:

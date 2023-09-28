@@ -47,12 +47,10 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      * @param int $userId
      * @return User|null
      */
-    public function findUserCart(int $userId)
+    public function findByUserId($userId)
     {
-        return $this->createQueryBuilder('u')
-            ->leftJoin('u.cart', 'cart')
-            ->addSelect('cart')
-            ->where('u.id = :userId')
+        return $this->createQueryBuilder('c')
+            ->where('c.username = :userId')
             ->setParameter('userId', $userId)
             ->getQuery()
             ->getOneOrNullResult();
