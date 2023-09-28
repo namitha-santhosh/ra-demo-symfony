@@ -6,7 +6,7 @@ use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface; // Import the new interface
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface; 
 use App\Entity\User;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -45,10 +45,8 @@ class AuthenticationController extends AbstractController
         $fullName = $user->getFullName();
 
 
-        // Generate a JWT token for the authenticated user
         $token = $this->jwtTokenManager->create($user);
 
-        // Store the JWT token in the response
         $response = new JsonResponse(['message' => 'Login successful', 'fullName' => $fullName]);
         $response->headers->set('Authorization', 'Bearer ' . $token);
 

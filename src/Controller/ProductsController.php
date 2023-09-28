@@ -14,17 +14,20 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 
 class ProductsController extends AbstractController
 {
     private $productsRepository;
+    private $logger;
     private $entityManager;
     
-    public function __construct(ProductsRepository $productsRepository, EntityManagerInterface $entityManager)
+    public function __construct(ProductsRepository $productsRepository, EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         $this->productsRepository = $productsRepository;
         $this->entityManager = $entityManager;
+        $this->logger =$logger;
     }
 
     #[Route('/api/products', name: 'products', methods: ['GET'])]
@@ -60,9 +63,8 @@ class ProductsController extends AbstractController
     #[Route('/api/products', name: 'create_product', methods: ['POST'])]
     public function createProduct(Request $request, LoggerInterface $logger): JsonResponse
     {
-        $baseUrl = 'http://localhost:8000'; // Replace with your Symfony server's base URL
+        $baseUrl = 'http://localhost:8000'; 
 
-        // Handle form data
         $productName = $request->request->get('productName');
         $productCode = $request->request->get('productCode');
         $releaseDate = $request->request->get('releaseDate');
@@ -76,7 +78,6 @@ class ProductsController extends AbstractController
             return new JsonResponse(['message' => 'Category not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        // Handle image upload
         $uploadedImage = $request->files->get('image');
         
         if (!$uploadedImage) {
@@ -93,7 +94,6 @@ class ProductsController extends AbstractController
             $imageUrl = null;
         }
 
-        // Create and persist the product entity
         $product = new Products();
         $product->setProductName($productName);
         $product->setProductCode($productCode);
@@ -131,12 +131,14 @@ class ProductsController extends AbstractController
         $product->setPrice($requestData['price']);
         $product->setStarRating($requestData['starRating']);
         $product->setImageUrl($requestData['imageUrl']);
+        $categoryName = $request->request->get('categoryName');
+        $category = $this->entityManager->getRepository(Category::class)->findOneBy(['name' => $categoryName]);
+        $product->setCategory($category);
+
 
         
-        // Set the categoryId from the request data
         $categoryId = $requestData['categoryId'];
 
-        // Find the category by ID (assuming you have a repository for categories)
         $category = $this->entityManager->getRepository(Category::class)->find($categoryId);
     
         if (!$category) {
@@ -150,54 +152,89 @@ class ProductsController extends AbstractController
         return new JsonResponse(['message' => 'Product updated successfully'], JsonResponse::HTTP_OK);
     } 
 
-    #[Route('/api/products/imgedit/{id}', name: 'update_product_with_image', methods: ['PUT'])]
-    public function updateProductWithImage($id, Request $request): JsonResponse
+    #[Route('/api/products/imgedit/{id}', name: 'update_product_with_image', methods: ['POST'])]
+    public function updateProductWithImage($id, Request $request, SluggerInterface $slugger): JsonResponse
     {
-        $product = $this->productsRepository->find($id);
+        $product = $this->entityManager->getRepository(Products::class)->find($id);
+        $baseUrl = 'http://localhost:8000'; 
 
         if (!$product) {
             return new JsonResponse(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
         }
 
-        // Handle form data
         $productName = $request->request->get('productName');
         $productCode = $request->request->get('productCode');
         $releaseDate = $request->request->get('releaseDate');
         $description = $request->request->get('description');
         $price = $request->request->get('price');
         $starRating = $request->request->get('starRating');
+        $categoryName = $request->request->get('categoryName');
+        $category = $this->entityManager->getRepository(Category::class)->findOneBy(['name' => $categoryName]);
 
-        $imageUrl = $product->getImageUrl(); // Initialize imageUrl as the current image URL
-
-        // Handle image upload
         $uploadedImage = $request->files->get('image');
+        $imageUrl = $product->getImageUrl(); 
         
-
         if ($uploadedImage instanceof UploadedFile) {
+            // Generate a unique file name for the uploaded image
+            $originalFilename = pathinfo($uploadedImage->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeFilename = $slugger->slug($originalFilename);
+            $newFilename = $safeFilename.'-'.uniqid().'.'.$uploadedImage->guessExtension();
+
+            // Move the uploaded image to the desired directory
+            $uploadsDirectory = $this->getParameter('kernel.project_dir') . '/public/uploads';
+            $uploadedImage->move($uploadsDirectory, $newFilename);
+
+            // Update the image URL
+            $imageUrl = '/uploads/' . $newFilename;
+            $imageUrl = $baseUrl . '/uploads/' . $newFilename;
+
+        }
+
+      /*   if ($uploadedImage instanceof UploadedFile) {
             $uploadsDirectory = $this->getParameter('kernel.project_dir') . '/public/uploads';
             $imageFileName = md5(uniqid()) . '.' . $uploadedImage->guessExtension();
             $uploadedImage->move($uploadsDirectory, $imageFileName);
             $imageUrl = '/uploads/' . $imageFileName;
-        }
+            $imageUrl = $baseUrl . '/uploads/' . $imageFileName;
+           
+        } */
 
-        // Update the product entity if form data is provided
         if ($productName !== null) {
             $product->setProductName($productName);
+        }
+        else{
+           return new JsonResponse(['message' => 'Name is null']);
         }
         if ($productCode !== null) {
             $product->setProductCode($productCode);
         }
+        else{
+            return new JsonResponse(['message' => 'code is null']);
+        }
         if ($releaseDate !== null) {
             $product->setReleaseDate($releaseDate);
+        }
+        else{
+           return new JsonResponse(['message' => 'date is null']);
         }
         if ($description !== null) {
             $product->setDescription($description);
         }
+        //else{
+        //    return new JsonResponse(['message' => 'desc is null']);
+        //}
         if ($price !== null) {
             $product->setPrice($price);
         }
+        //else{
+        //    return new JsonResponse(['message' => 'price is null']);
+        //}
         if ($starRating !== null) {
             $product->setStarRating($starRating);
+        }
+
+        if($category !== null){
+            $product->setCategory($category);
         }
         $product->setImageUrl($imageUrl);
 
@@ -236,6 +273,7 @@ class ProductsController extends AbstractController
             'price' => $product->getPrice(),
             'starRating' => $product->getStarRating(),
             'imageUrl' => $product->getImageUrl(),
+            'category' => $product->getCategory()
         ];
     }
 }
