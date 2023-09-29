@@ -6,18 +6,29 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use App\Entity\User;
-use Symfony\Component\Routing\Annotation\Route; 
-use OpenApi\Annotations as OA;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Twig\Environment;
 
 class RegistrationController extends AbstractController
 {
-
-    #[Route('/api/register', name:'register', methods: ['POST'])]
-
-    public function register(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
+    #[Route('/api/register', name: 'register', methods: ['POST'])]
+    public function register(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        MailerInterface $mailer,
+        Environment $twig
+    ): JsonResponse {
         $data = json_decode($request->getContent(), true);
+
+        $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $data['email']]);
+
+        if ($existingUser) {
+            return new JsonResponse(['error' => 'Email already registered'], Response::HTTP_CONFLICT);
+        }
 
         $user = new User();
         $user->setFullName($data['fullname']);
@@ -30,8 +41,19 @@ class RegistrationController extends AbstractController
         $entityManager->persist($user);
         $entityManager->flush();
 
+        $this->sendRegistrationEmail($user, $mailer, $twig);
+
         return new JsonResponse(['message' => 'Sign Up Successful'], 201);
     }
 
-    
+    private function sendRegistrationEmail(User $user, MailerInterface $mailer, Environment $twig)
+    {
+        $email = (new Email())
+            ->from('tandmprodtest@gmail.com')
+            ->to($user->getEmail())
+            ->subject('T&M Registration Confirmation')
+            ->html($twig->render('emails/registration.html.twig'));
+
+        $mailer->send($email);
+    }
 }
