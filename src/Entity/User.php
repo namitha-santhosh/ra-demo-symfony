@@ -7,6 +7,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Annotations as OA;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -14,9 +16,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+
+     /**
+     * @OA\Property(description="The unique identifier of the user.")
+     */
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    /**
+     * @OA\Property(type="string", maxLength=255)
+     */
     private ?string $email = null;
 
     #[ORM\Column]
@@ -117,6 +126,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->Fullname = $Fullname;
 
         return $this;
+    }
+
+    public function __toString()
+    {
+        return $this->Fullname;
     }
 
     public function getContact(): ?string

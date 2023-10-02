@@ -18,7 +18,7 @@ api_login_check:
     path: /api/login_check
 
 remove_product:
-    path: /api/remove-product/{productId}
+    path: /api/cart/remove-product/{productId}
     controller: App\Controller\CartController::removeProductFromCart
     methods: [POST]
 

@@ -43,6 +43,11 @@ class Category
         return $this;
     }
 
+    public function __toString()
+    {
+        return $this->name; // Assuming 'name' is the property to display
+    }
+
     /**
      * @return Collection<int, Products>
      */

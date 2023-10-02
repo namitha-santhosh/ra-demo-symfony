@@ -65,6 +65,11 @@ class Products
         return $this;
     }
 
+    public function __toString()
+    {
+        return $this->productName;
+    }
+
     public function getProductCode(): ?string
     {
         return $this->productCode;

@@ -10,8 +10,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
-#[Route('/api/cart', name: 'cart_')]
 class CartController extends AbstractController
 {
     private $entityManager;
@@ -21,7 +23,35 @@ class CartController extends AbstractController
         $this->entityManager = $entityManager;
     }
     
-    #[Route('/add-product/{productId}', name: 'add_product', methods: ['POST'])]
+    //#[Route('api/cart/add-product/{productId}', name: 'add_product', methods: ['POST'])]
+    /**
+     * @OA\Response(
+     *     response=201,
+     *     description="Adds a product to the cart .",
+     *     @Model(type=Cart::class)
+     * ),
+     *  @OA\Response(
+ *         response=401,
+ *         description="User not authenticated",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="error", type="string", example="User not authenticated")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="User does not have a cart",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="error", type="string", example="User does not have a cart")
+ *         )
+ *     )
+     * @OA\Tag(name="Cart")
+     * @Security(name="Bearer")
+     * @Route("api/cart/add-product/{productId}", name="add_product", methods={"POST"})
+     */ 
+
+    
     public function addProductToCart(int $productId, UserRepository $userRepository): JsonResponse
     {
         $user = $this->getUser();
@@ -51,7 +81,52 @@ class CartController extends AbstractController
         return $this->json(['message' => 'Product added to cart']);
     }
 
-    #[Route('/view-cart', name: 'viewcart', methods: ['GET'])]
+    /**
+ * @OA\Get(
+ *     path="/api/cart/view-cart",
+ *     summary="View user's cart",
+ *     tags={"Cart"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Response(
+ *         response=200,
+ *         description="User's cart details",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="username", type="string", example="John Doe"),
+ *             @OA\Property(
+ *                 property="products",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     type="object",
+ *                     @OA\Property(property="id", type="integer"),
+ *                     @OA\Property(property="name", type="string"),
+ *                     @OA\Property(property="price", type="number", format="float"),
+ *                     @OA\Property(property="description", type="string"),
+ *                     @OA\Property(property="imageUrl", type="string")
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=401,
+ *         description="User not authenticated",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="error", type="string", example="User not authenticated")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="User does not have a cart",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="error", type="string", example="User does not have a cart")
+ *         )
+ *     )
+ * )
+ * @Route("/api/cart/view-cart", name="viewcart", methods={"GET"})
+ */
+
     public function viewCart(): JsonResponse
     {
         $user = $this->getUser();
@@ -86,7 +161,32 @@ class CartController extends AbstractController
         ]);
     }    
 
-    #[Route('/remove-product/{productId}', name: 'remove_product', methods: ['POST'])]
+    #[Route('api/cart/remove-product/{productId}', name: 'remove_product', methods: ['POST'])]
+    /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Deletes a product from the cart .",
+     *     @Model(type=Cart::class)
+     * ),  @OA\Response(
+ *         response=401,
+ *         description="User not authenticated",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="error", type="string", example="User not authenticated")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Product not found",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="error", type="string", example="Product not found")
+ *         )
+ *     )
+     * @OA\Tag(name="Cart")
+     * @Security(name="Bearer")
+     * @Route("/api/cart/remove-product/{productId}", name="remove_product", methods={"POST"})
+     */ 
     public function removeProductFromCart(int $productId): JsonResponse
     {
         $user = $this->getUser();

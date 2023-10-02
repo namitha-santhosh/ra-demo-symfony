@@ -15,6 +15,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 
 class ProductsController extends AbstractController
@@ -30,7 +33,17 @@ class ProductsController extends AbstractController
         $this->logger =$logger;
     }
 
-    #[Route('/api/products', name: 'products', methods: ['GET'])]
+
+     /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns the list of products",
+     *     @Model(type=Products::class)
+     * )
+     * @OA\Tag(name="Products")
+     * @Security(name="Bearer")
+     * @Route("/api/products", name="get_products", methods={"GET"})
+     */
 
     public function getProducts(Request $request): JsonResponse
     {
@@ -46,7 +59,18 @@ class ProductsController extends AbstractController
         return new JsonResponse($productsArray);
     }
 
-    #[Route('/api/products/{id}', name: 'get_product', methods: ['GET'])]
+    //#[Route('/api/products/{id}', name: 'get_product', methods: ['GET'])]
+
+     /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns the details of one product",
+     *     @Model(type=Products::class)
+     * )
+     * @OA\Tag(name="Products")
+     * @Security(name="Bearer")
+     * @Route("/api/products/{id}", name="get_product", methods={"GET"})
+     */ 
     public function getProduct($id): JsonResponse
     {
         $product = $this->productsRepository->find($id);
@@ -60,7 +84,30 @@ class ProductsController extends AbstractController
         return new JsonResponse($productData);
     }
 
-    #[Route('/api/products', name: 'create_product', methods: ['POST'])]
+    /**
+     * @OA\Response(
+     *     response=201,
+     *     description="Creates a new Product",
+     *     @Model(type=Products::class)
+     * )
+     * @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *         type="object",
+     *         @OA\Property(property="productName", type="string"),
+     *         @OA\Property(property="productCode", type="string"),
+     *         @OA\Property(property="releaseDate", type="string", format="date"),
+     *         @OA\Property(property="description", type="string"),
+     *         @OA\Property(property="price", type="number"),
+     *         @OA\Property(property="starRating", type="number"),
+     *         @OA\Property(property="categoryName", type="string"),
+     *         @OA\Property(property="image", type="string", format="binary"),
+     *     )
+     * )
+     * @OA\Tag(name="Products")
+     * @Security(name="Bearer")
+     * @Route("/api/products", name="create_product", methods={"POST"})
+     */
     public function createProduct(Request $request, LoggerInterface $logger): JsonResponse
     {
         $baseUrl = 'http://localhost:8000'; 
@@ -113,7 +160,30 @@ class ProductsController extends AbstractController
     }
 
 
-    #[Route('/api/products/{id}', name: 'update_product', methods: ['PUT'])]
+    /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Updates an existing product when image is not updated",
+     *     @Model(type=Products::class)
+     * )
+     * @OA\RequestBody(
+     *     @OA\JsonContent(
+     *         type="object",
+     *         @OA\Property(property="productName", type="string"),
+     *         @OA\Property(property="productCode", type="string"),
+     *         @OA\Property(property="releaseDate", type="string", format="date"),
+     *         @OA\Property(property="description", type="string"),
+     *         @OA\Property(property="price", type="number"),
+     *         @OA\Property(property="starRating", type="number"),
+     *         @OA\Property(property="imageUrl", type="string"),
+     *         @OA\Property(property="categoryName", type="string"),
+     *         @OA\Property(property="categoryId", type="integer"),
+     *     )
+     * )
+     * @OA\Tag(name="Products")
+     * @Security(name="Bearer")
+     * @Route("/api/products/{id}", name="update_product", methods={"PUT"})
+     */ 
     public function updateProduct($id, Request $request): JsonResponse
     {
         $product = $this->productsRepository->find($id);
@@ -152,7 +222,30 @@ class ProductsController extends AbstractController
         return new JsonResponse(['message' => 'Product updated successfully'], JsonResponse::HTTP_OK);
     } 
 
-    #[Route('/api/products/imgedit/{id}', name: 'update_product_with_image', methods: ['POST'])]
+    /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Updates an existing product when image is also changed",
+     *     @Model(type=Products::class)
+     * )
+     * @OA\RequestBody(
+     *     @OA\JsonContent(
+     *         type="object",
+     *         @OA\Property(property="productName", type="string"),
+     *         @OA\Property(property="productCode", type="string"),
+     *         @OA\Property(property="releaseDate", type="string", format="date"),
+     *         @OA\Property(property="description", type="string"),
+     *         @OA\Property(property="price", type="number"),
+     *         @OA\Property(property="starRating", type="number"),
+     *         @OA\Property(property="imageUrl", type="string"),
+     *         @OA\Property(property="categoryName", type="string"),
+     *         @OA\Property(property="categoryId", type="integer"),
+     *     )
+     * )
+     * @OA\Tag(name="Products")
+     * @Security(name="Bearer")
+     * @Route("/api/products/imgedit/{id}", name="update_product_with_image", methods={"POST"})
+     */ 
     public function updateProductWithImage($id, Request $request, SluggerInterface $slugger): JsonResponse
     {
         $product = $this->entityManager->getRepository(Products::class)->find($id);
@@ -175,29 +268,17 @@ class ProductsController extends AbstractController
         $imageUrl = $product->getImageUrl(); 
         
         if ($uploadedImage instanceof UploadedFile) {
-            // Generate a unique file name for the uploaded image
             $originalFilename = pathinfo($uploadedImage->getClientOriginalName(), PATHINFO_FILENAME);
             $safeFilename = $slugger->slug($originalFilename);
             $newFilename = $safeFilename.'-'.uniqid().'.'.$uploadedImage->guessExtension();
 
-            // Move the uploaded image to the desired directory
             $uploadsDirectory = $this->getParameter('kernel.project_dir') . '/public/uploads';
             $uploadedImage->move($uploadsDirectory, $newFilename);
 
-            // Update the image URL
             $imageUrl = '/uploads/' . $newFilename;
             $imageUrl = $baseUrl . '/uploads/' . $newFilename;
 
         }
-
-      /*   if ($uploadedImage instanceof UploadedFile) {
-            $uploadsDirectory = $this->getParameter('kernel.project_dir') . '/public/uploads';
-            $imageFileName = md5(uniqid()) . '.' . $uploadedImage->guessExtension();
-            $uploadedImage->move($uploadsDirectory, $imageFileName);
-            $imageUrl = '/uploads/' . $imageFileName;
-            $imageUrl = $baseUrl . '/uploads/' . $imageFileName;
-           
-        } */
 
         if ($productName !== null) {
             $product->setProductName($productName);
@@ -220,15 +301,15 @@ class ProductsController extends AbstractController
         if ($description !== null) {
             $product->setDescription($description);
         }
-        //else{
-        //    return new JsonResponse(['message' => 'desc is null']);
-        //}
+        else{
+            return new JsonResponse(['message' => 'desc is null']);
+        }
         if ($price !== null) {
             $product->setPrice($price);
         }
-        //else{
-        //    return new JsonResponse(['message' => 'price is null']);
-        //}
+        else{
+            return new JsonResponse(['message' => 'price is null']);
+        }
         if ($starRating !== null) {
             $product->setStarRating($starRating);
         }
@@ -244,7 +325,17 @@ class ProductsController extends AbstractController
     }
 
 
-    #[Route('/api/products/{id}', name: 'delete_product', methods: ['DELETE'])]
+    //#[Route('/api/products/{id}', name: 'delete_product', methods: ['DELETE'])]
+    /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Deletes a product.",
+     *     @Model(type=Products::class)
+     * )
+     * @OA\Tag(name="Products")
+     * @Security(name="Bearer")
+     * @Route("/api/products/{id}", name="delete_product", methods={"DELETE"})
+     */ 
     public function deleteProduct($id): JsonResponse
     {
         $product = $this->productsRepository->find($id);

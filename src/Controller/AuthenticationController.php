@@ -12,6 +12,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class AuthenticationController extends AbstractController
 {
@@ -24,7 +27,22 @@ class AuthenticationController extends AbstractController
         $this->jwtTokenManager = $jwtTokenManager;
     }
 
+   
     /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Login Successful",
+     *     @Model(type=User::class)
+     * ),
+     * @OA\Response(
+     *     response=404,
+     *     description="User not found."
+     * ),
+     * @OA\Response(
+     *     response=401,
+     *     description="Invalid password"
+     * )
+     * @OA\Tag(name="Login")
      * @Route("/api/login", name="login", methods={"POST"})
      */
     public function login(Request $request, UserPasswordHasherInterface $passwordHasher, TokenStorageInterface $tokenStorage): JsonResponse
@@ -57,6 +75,12 @@ class AuthenticationController extends AbstractController
 
 
     /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Logged Out",
+     *     @Model(type=User::class)
+     * )
+     * @OA\Tag(name="Logout")
      * @Route("/api/logout", name="logout", methods={"POST"})
      */
     public function logout(): JsonResponse

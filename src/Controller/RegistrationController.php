@@ -12,10 +12,14 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Twig\Environment;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class RegistrationController extends AbstractController
 {
     #[Route('/api/register', name: 'register', methods: ['POST'])]
+    
     public function register(
         Request $request,
         EntityManagerInterface $entityManager,
