@@ -13,10 +13,10 @@ class CartItem
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'cartItems')]
+    #[ORM\ManyToOne(targetEntity: Cart::class, inversedBy: 'cartItems', cascade: ['persist', 'remove'])]
     private ?Cart $cart = null;
 
-    #[ORM\ManyToOne(inversedBy: 'cartItems')]
+    #[ORM\ManyToOne(targetEntity: Products::class, inversedBy: 'cartItems', cascade: ['persist'])]
     private ?Products $products = null;
 
     #[ORM\Column]
@@ -61,5 +61,18 @@ class CartItem
         $this->quantity = $quantity;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return 'CartItem #' . $this->getId(); // Provide an appropriate representation
+    }
+
+    #[ORM\PreRemove]
+    public function preRemove()
+    {
+        if ($this->cart !== null) {
+            $this->cart->removeCartItem($this); // Ensure bidirectional relationship is handled
+        }
     }
 }

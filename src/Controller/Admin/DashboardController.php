@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
 use App\Entity\Cart;
+use App\Entity\CartItem;
 use App\Entity\Products;
 use App\Entity\Category;
 use App\Entity\User;
@@ -46,8 +47,13 @@ class DashboardController extends AbstractDashboardController
             MenuItem::linkToCrud('Products', 'fa fa-file-text', Products::class),
 
             MenuItem::section('Users'),
-            MenuItem::linkToCrud('Cart', 'fa fa-comment', Cart::class),
             MenuItem::linkToCrud('Users', 'fa fa-user', User::class),
+
+            MenuItem::section('Cart'),
+            MenuItem::linkToCrud('Cart', 'fa fa-comment', Cart::class),
+            MenuItem::linkToCrud('CartItem', 'fa fa-comment', CartItem::class),
+
+
         ];
     }
 

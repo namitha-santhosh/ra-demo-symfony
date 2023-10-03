@@ -40,15 +40,12 @@ class Products
     #[ORM\ManyToOne(inversedBy: 'products')]
     private ?Category $category = null;
 
-    #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'products')]
-    private Collection $carts;
 
-    #[ORM\OneToMany(mappedBy: 'products', targetEntity: CartItem::class)]
+    #[ORM\OneToMany(mappedBy: 'products', targetEntity: CartItem::class, cascade:['persist'])]
     private Collection $cartItems;
 
     public function __construct()
     {
-        $this->carts = new ArrayCollection();
         $this->cartItems = new ArrayCollection();
     }
 
@@ -158,32 +155,6 @@ class Products
         return $this;
     }
 
-    /**
-     * @return Collection<int, Cart>
-     */
-    public function getCarts(): Collection
-    {
-        return $this->carts;
-    }
-
-    public function addCart(Cart $cart): static
-    {
-        if (!$this->carts->contains($cart)) {
-            $this->carts->add($cart);
-            $cart->addProduct($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCart(Cart $cart): static
-    {
-        if ($this->carts->removeElement($cart)) {
-            $cart->removeProduct($this);
-        }
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, CartItem>

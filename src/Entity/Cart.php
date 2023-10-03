@@ -19,15 +19,12 @@ class Cart
     #[ORM\JoinColumn(nullable: false)]
     private ?User $username = null;
 
-    #[ORM\ManyToMany(targetEntity: Products::class, inversedBy: 'carts')]
-    private Collection $products;
 
-    #[ORM\OneToMany(mappedBy: 'cart', targetEntity: CartItem::class)]
+    #[ORM\OneToMany(mappedBy: 'cart', targetEntity: CartItem::class, cascade: ['persist', 'remove'])]
     private Collection $cartItems;
 
     public function __construct()
     {
-        $this->products = new ArrayCollection();
         $this->cartItems = new ArrayCollection();
     }
 
@@ -44,30 +41,6 @@ class Cart
     public function setUsername(User $username): static
     {
         $this->username = $username;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Products>
-     */
-    public function getProducts(): Collection
-    {
-        return $this->products;
-    }
-
-    public function addProduct(Products $product): static
-    {
-        if (!$this->products->contains($product)) {
-            $this->products->add($product);
-        }
-
-        return $this;
-    }
-
-    public function removeProduct(Products $product): static
-    {
-        $this->products->removeElement($product);
 
         return $this;
     }
@@ -92,13 +65,31 @@ class Cart
 
     public function removeCartItem(CartItem $cartItem): static
     {
-        if ($this->cartItems->removeElement($cartItem)) {
-            // set the owning side to null (unless already changed)
-            if ($cartItem->getCart() === $this) {
-                $cartItem->setCart(null);
-            }
+        if ($this->cartItems->contains($cartItem)) {
+            $this->cartItems->removeElement($cartItem);
+            $cartItem->setCart(null); // Clear reference to the cart
         }
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return 'Cart #' . $this->id; // Customize this to your desired string representation
+    }
+    public function getFormattedCartItems(): string
+    {
+        $formattedItems = [];
+
+        /** @var CartItem $cartItem */
+        foreach ($this->cartItems as $cartItem) {
+            $formattedItems[] = sprintf(
+                '%s (Quantity: %d)',
+                $cartItem->getProducts()->getProductName(),
+                $cartItem->getQuantity()
+            );
+        }
+
+        return implode(', ', $formattedItems);
     }
 }
