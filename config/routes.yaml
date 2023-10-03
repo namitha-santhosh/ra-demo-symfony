@@ -17,10 +17,14 @@ login:
 api_login_check:
     path: /api/login_check
 
+logout:
+    path: /api/logout
+
 remove_product:
     path: /api/cart/remove-product/{productId}
     controller: App\Controller\CartController::removeProductFromCart
     methods: [POST]
+
 
 app.swagger_ui:
     path: /api/doc

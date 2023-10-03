@@ -43,9 +43,13 @@ class Products
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'products')]
     private Collection $carts;
 
+    #[ORM\OneToMany(mappedBy: 'products', targetEntity: CartItem::class)]
+    private Collection $cartItems;
+
     public function __construct()
     {
         $this->carts = new ArrayCollection();
+        $this->cartItems = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -176,6 +180,36 @@ class Products
     {
         if ($this->carts->removeElement($cart)) {
             $cart->removeProduct($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CartItem>
+     */
+    public function getCartItems(): Collection
+    {
+        return $this->cartItems;
+    }
+
+    public function addCartItem(CartItem $cartItem): static
+    {
+        if (!$this->cartItems->contains($cartItem)) {
+            $this->cartItems->add($cartItem);
+            $cartItem->setProducts($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCartItem(CartItem $cartItem): static
+    {
+        if ($this->cartItems->removeElement($cartItem)) {
+            // set the owning side to null (unless already changed)
+            if ($cartItem->getProducts() === $this) {
+                $cartItem->setProducts(null);
+            }
         }
 
         return $this;

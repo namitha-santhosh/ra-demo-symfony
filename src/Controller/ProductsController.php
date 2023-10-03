@@ -186,6 +186,10 @@ class ProductsController extends AbstractController
      */ 
     public function updateProduct($id, Request $request): JsonResponse
     {
+        $user=$this->getUser();
+        if(!$user){
+            return new JsonResponse(['messgae'=>'Invalid user']);
+        }
         $product = $this->productsRepository->find($id);
 
         if (!$product) {

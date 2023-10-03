@@ -78,7 +78,7 @@ class CartController extends AbstractController
         $this->entityManager->persist($cart);
         $this->entityManager->flush();
     
-        return $this->json(['message' => 'Product added to cart']);
+        return $this->json(['message' => 'Product added to cart', 'user'=>$user]);
     }
 
     /**

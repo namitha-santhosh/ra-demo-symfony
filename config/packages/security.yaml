@@ -33,9 +33,7 @@ security:
             security: false
         main:
             lazy: true
-            provider: app_user_provider     
-       
-        
+            provider: app_user_provider   
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -49,8 +47,7 @@ security:
         - { path: ^/api/register, roles: PUBLIC_ACCESS  }
         - { path: ^/api/login, roles: PUBLIC_ACCESS  }
         - { path: ^/api/doc, roles: PUBLIC_ACCESS  }
-        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY  }
-        # - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
         # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:
