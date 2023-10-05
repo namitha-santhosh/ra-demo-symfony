@@ -23,14 +23,12 @@ use OpenApi\Annotations as OA;
 class ProductsController extends AbstractController
 {
     private $productsRepository;
-    private $logger;
     private $entityManager;
     
-    public function __construct(ProductsRepository $productsRepository, EntityManagerInterface $entityManager, LoggerInterface $logger)
+    public function __construct(ProductsRepository $productsRepository, EntityManagerInterface $entityManager)
     {
         $this->productsRepository = $productsRepository;
         $this->entityManager = $entityManager;
-        $this->logger =$logger;
     }
 
 
@@ -45,9 +43,8 @@ class ProductsController extends AbstractController
      * @Route("/api/products", name="get_products", methods={"GET"})
      */
 
-    public function getProducts(Request $request): JsonResponse
+    public function getProducts(): JsonResponse
     {
-        $token = $request->headers->get('Authorization');
         $products = $this->productsRepository->findAll();
 
         $productsArray = [];
@@ -108,7 +105,7 @@ class ProductsController extends AbstractController
      * @Security(name="Bearer")
      * @Route("/api/products", name="create_product", methods={"POST"})
      */
-    public function createProduct(Request $request, LoggerInterface $logger): JsonResponse
+    public function createProduct(Request $request): JsonResponse
     {
         $baseUrl = 'http://localhost:8000'; 
 
@@ -118,6 +115,7 @@ class ProductsController extends AbstractController
         $description = $request->request->get('description');
         $price = $request->request->get('price');
         $starRating = $request->request->get('starRating');
+        $categoryId= $request->request->get('categoryId');
         $categoryName = $request->request->get('categoryName');
         $category = $this->entityManager->getRepository(Category::class)->findOneBy(['name' => $categoryName]);
 
@@ -154,7 +152,6 @@ class ProductsController extends AbstractController
         $this->entityManager->persist($product);
         $this->entityManager->flush();
 
-        $logger->info('Product Created Successfully');
 
         return new JsonResponse(['message' => 'Product created successfully'], JsonResponse::HTTP_CREATED);
     }
@@ -205,21 +202,19 @@ class ProductsController extends AbstractController
         $product->setPrice($requestData['price']);
         $product->setStarRating($requestData['starRating']);
         $product->setImageUrl($requestData['imageUrl']);
-        $categoryName = $request->request->get('categoryName');
-        $category = $this->entityManager->getRepository(Category::class)->findOneBy(['name' => $categoryName]);
-        $product->setCategory($category);
 
 
-        
-        $categoryId = $requestData['categoryId'];
+      if (isset($requestData['categoryId'])) {
+    $categoryId = $requestData['categoryId'];
+    $category = $this->entityManager->getRepository(Category::class)->find($categoryId);
 
-        $category = $this->entityManager->getRepository(Category::class)->find($categoryId);
-    
-        if (!$category) {
-            return new JsonResponse(['error' => 'Category not found'], Response::HTTP_BAD_REQUEST);
-        }
+    if (!$category) {
+        return new JsonResponse(['error' => 'Category not found'], Response::HTTP_BAD_REQUEST);
+    }
 
-        $product->setCategory($category);
+    $product->setCategory($category);
+}
+
 
         $this->entityManager->flush();
 
