@@ -43,19 +43,27 @@ class ProductsController extends AbstractController
      * @Route("/api/products", name="get_products", methods={"GET"})
      */
 
-    public function getProducts(): JsonResponse
+    public function getProducts(Request $request): JsonResponse
     {
-        $products = $this->productsRepository->findAll();
-
+        $page = $request->query->getInt('page', 1);
+        $pageSize = $request->query->getInt('pageSize', 10);
+    
+        $products = $this->productsRepository->findBy([], null, $pageSize, ($page - 1) * $pageSize);
+    
         $productsArray = [];
         foreach ($products as $product) {
             $productData = $this->serializeProduct($product);
             $productsArray[] = $productData;
         }
-
-        return new JsonResponse($productsArray);
+    
+        $totalItems = count($this->productsRepository->findAll());
+    
+        return new JsonResponse([
+            'data' => $productsArray,
+            'totalItems' => $totalItems
+        ]);
     }
-
+ 
     //#[Route('/api/products/{id}', name: 'get_product', methods: ['GET'])]
 
      /**

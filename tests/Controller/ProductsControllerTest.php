@@ -10,38 +10,30 @@ use App\Repository\ProductsRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Products;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\File\UploadedFile; // Import the Products entity
+use Symfony\Component\HttpFoundation\File\UploadedFile; 
 
 class ProductsControllerTest extends TestCase
 {
     public function testGetProducts()
     {
-        // Create a mock for ProductsRepository
         $productsRepository = $this->createMock(ProductsRepository::class);
 
-        // Create sample products data
         $sampleProducts = [
-            new Products(), // You can add more sample products here
+            new Products(), 
         ];
 
-        // Mock the findAll method of ProductsRepository to return the sample products
         $productsRepository->expects($this->once())
             ->method('findAll')
             ->willReturn($sampleProducts);
 
-        // Create a mock for EntityManagerInterface
         $entityManager = $this->createMock(EntityManagerInterface::class);
 
-        // Create an instance of the ProductsController with the mocked repository and entityManager
         $controller = new ProductsController($productsRepository, $entityManager);
 
-        // Call the getProducts method
         $response = $controller->getProducts();
 
-        // Assert that the response is an instance of JsonResponse
         $this->assertInstanceOf(JsonResponse::class, $response);
 
-        // You can also assert the content of the JsonResponse if needed
         $content = json_decode($response->getContent(), true);
         $this->assertIsArray($content);
         $this->assertCount(count($sampleProducts), $content);
@@ -49,39 +41,47 @@ class ProductsControllerTest extends TestCase
 
     public function testGetProduct()
     {
-        // Create a mock for ProductsRepository
-        $productsRepository = $this->createMock(ProductsRepository::class);
+        $id = 22; 
 
-        // Create a sample product
-        $sampleProduct = new Products();
-        $sampleProduct->setProductName('Sample Product');
-        // Set other properties as needed
-
-        // Mock the find method of ProductsRepository to return the sample product
-        $productsRepository->expects($this->once())
-            ->method('find')
-            ->with(1) // The product ID you want to test
-            ->willReturn($sampleProduct);
-
-        // Create a mock for EntityManagerInterface
+        $product = $this->createMock(Products::class);
+        $product->method('getId')->willReturn($id);
         $entityManager = $this->createMock(EntityManagerInterface::class);
 
-        // Create an instance of the ProductsController with the mocked repository and entityManager
+        $productsRepository = $this->createMock(ProductsRepository::class);
+        $productsRepository->method('find')->willReturn($product);
+
         $controller = new ProductsController($productsRepository, $entityManager);
+        $response = $controller->getProduct($id);
 
-        // Call the getProduct method with a sample product ID (1)
-        $response = $controller->getProduct(1);
-
-        // Assert that the response is an instance of JsonResponse
         $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertEquals(200, $response->getStatusCode());
 
-        // You can also assert the content of the JsonResponse if needed
-        $content = json_decode($response->getContent(), true);
-        $this->assertIsArray($content);
-        $this->assertArrayHasKey('productName', $content);
-        $this->assertEquals($sampleProduct->getProductName(), $content['productName']);
-        // Assert other properties as needed
+        $responseData = json_decode($response->getContent(), true);
+
+        $this->assertArrayHasKey('id', $responseData);
+
+        $this->assertEquals($id, $responseData['id']);
     }
 
+    public function testGetProductNotFound()
+    {
+        $id = 9999; 
+
+        $productsRepository = $this->createMock(ProductsRepository::class);
+        $productsRepository->method('find')->willReturn(null);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+
+        $controller = new ProductsController($productsRepository, $entityManager);
+        $response = $controller->getProduct($id);
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertEquals(404, $response->getStatusCode());
+
+        $responseData = json_decode($response->getContent(), true);
+
+        $this->assertArrayHasKey('error', $responseData);
+
+        $this->assertEquals('Product not found', $responseData['error']);
+    }
 
 }

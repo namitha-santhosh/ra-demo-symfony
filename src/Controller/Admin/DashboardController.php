@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Locale;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -18,11 +19,13 @@ use App\Entity\CartItem;
 use App\Entity\Products;
 use App\Entity\Category;
 use App\Entity\User;
+use Symfony\Component\Security\Core\Authorization\Annotation\IsGranted;
+
+
 
 class DashboardController extends AbstractDashboardController
 {
     private $security;
-
     public function __construct(Security $security)
     {
         $this->security = $security;
@@ -31,12 +34,12 @@ class DashboardController extends AbstractDashboardController
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
-        
+
         $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
 
         return $this->redirect($adminUrlGenerator->setController(CartCrudController::class)->generateUrl());
+        // Rest of your code...
     }
-
     public function configureMenuItems(): iterable
     {
         return [
@@ -57,14 +60,6 @@ class DashboardController extends AbstractDashboardController
         ];
     }
 
-    public function someAction()
-    {
-        // Replace "main" with the name of your firewall
-        $firewallName = 'api';
-        $logoutUrl = $this->generateUrl('logout', ['_firewall' => $firewallName]);
-
-        // Use $logoutUrl as needed in your code
-    }
-
-
+    // Rest of your class...
 }
+

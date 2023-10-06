@@ -75,35 +75,41 @@ class CartController extends AbstractController
         }
 
         //$cart->addProduct($product);
+        $requestContent = $request->getContent();
+        $requestData = json_decode($requestContent, true); // true to get an associative array
 
-        $quantity = $request->request->get('quantity', 1); // Get the quantity from the request, default to 1
-
-    // Check if the product is already in the cart
-    $cartItem = null;
-
-    foreach ($cart->getCartItems() as $item) {
-        if ($item->getProducts() === $product) {
-            $cartItem = $item;
-            break;
+        if (isset($requestData['quantity'])) {
+            $quantity = (int) $requestData['quantity']; 
+        }else{
+            return new JsonResponse(['error' => 'Quantity is null']);
         }
-    }
+            
 
-    if ($cartItem) {
-        $newQuantity = $cartItem->getQuantity() + $quantity;
-        $cartItem->setQuantity($newQuantity);
-    } else {
-        $cartItem = new CartItem();
-        $cartItem->setCart($cart);
-        $product = $entityManager->getRepository(Products::class)->find($productId);
-        $cartItem->setProducts($product);
-        $cartItem->setQuantity($quantity);
-        $cart->addCartItem($cartItem);
-    }
+        $cartItem = null;
 
-    $this->entityManager->persist($cart);
-    $this->entityManager->flush();
+        foreach ($cart->getCartItems() as $item) {
+            if ($item->getProducts() === $product) {
+                $cartItem = $item;
+                break;
+            }
+        }
 
-    return $this->json(['message' => 'Product added to cart', 'user' => $user]);
+        if ($cartItem) {
+            $newQuantity = $cartItem->getQuantity() + $quantity;
+            $cartItem->setQuantity($newQuantity);
+        } else {
+            $cartItem = new CartItem();
+            $cartItem->setCart($cart);
+            $product = $entityManager->getRepository(Products::class)->find($productId);
+            $cartItem->setProducts($product);
+            $cartItem->setQuantity($quantity);
+            $cart->addCartItem($cartItem);
+        }
+
+        $this->entityManager->persist($cart);
+        $this->entityManager->flush();
+
+        return $this->json(['message' => 'Product added to cart', 'user' => $user, 'updatedQuantity' => $cartItem->getQuantity()]);
 }
 
     /**

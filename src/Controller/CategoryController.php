@@ -99,7 +99,10 @@ class CategoryController extends AbstractController
                 'id' => $product->getId(),
                 'productName' => $product->getProductName(),
                 'productCode' => $product->getProductCode(),
-                'price' => $product->getPrice()
+                'price' => $product->getPrice(),
+                'releaseDate' => $product->getReleaseDate(),
+                'starRating' => $product->getStarRating(),
+                'imageUrl' => $product->getImageUrl()
             ];
         }
 
