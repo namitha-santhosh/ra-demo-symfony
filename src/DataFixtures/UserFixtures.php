@@ -13,6 +13,13 @@ class UserFixtures extends Fixture{
         $user->setPassword($hashedPassword);
     $user->setRoles(['ROLE_ADMIN']);
     $manager->persist($user);
+
+    $user2 = new User();
+    $user2->setEmail('namitha@gmail.com');
+    $hashedPassword = password_hash('hello', PASSWORD_BCRYPT);
+        $user2->setPassword($hashedPassword);
+    $user2->setRoles(['ROLE_USER']);
+    $manager->persist($user2);
     $manager->flush();
     }
 }

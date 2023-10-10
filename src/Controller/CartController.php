@@ -74,9 +74,8 @@ class CartController extends AbstractController
             $cart->setUsername($user);
         }
 
-        //$cart->addProduct($product);
         $requestContent = $request->getContent();
-        $requestData = json_decode($requestContent, true); // true to get an associative array
+        $requestData = json_decode($requestContent, true); 
 
         if (isset($requestData['quantity'])) {
             $quantity = (int) $requestData['quantity']; 
@@ -171,25 +170,6 @@ class CartController extends AbstractController
         if (!$cart) {
             return $this->json(['error' => 'User does not have a cart'], 404);
         }
-    /* 
-        $productData = [];
-    
-        $products = $cart->getProducts();
-    
-        foreach ($products as $product) {
-            $productData[] = [
-                'id' => $product->getId(),
-                'name' => $product->getProductName(),
-                'price' => $product->getPrice(),
-                'description' => $product->getDescription(),
-                'imageUrl' => $product->getImageUrl()
-            ];
-        }
-    
-        return $this->json([
-            'username' => $user->getFullname(),
-            'products' => $productData,
-        ]); */
 
         $cartItems = $cart->getCartItems();
 
@@ -203,13 +183,13 @@ class CartController extends AbstractController
             'price' => $product->getPrice(),
             'description' => $product->getDescription(),
             'imageUrl' => $product->getImageUrl(),
-            'quantity' => $cartItem->getQuantity(), // Retrieve the quantity from the CartItem
+            'quantity' => $cartItem->getQuantity(), 
         ];
     }
 
     return $this->json([
         'username' => $user->getFullname(),
-        'cartItems' => $cartData, // Return cart items including quantity
+        'cartItems' => $cartData, 
     ]);
     }    
 
@@ -218,7 +198,7 @@ class CartController extends AbstractController
      * @OA\Response(
      *     response=200,
      *     description="Deletes a product from the cart .",
-     *     @Model(type=Cart::class)
+     *     @Model(type=CartItem::class)
      * ),  @OA\Response(
  *         response=401,
  *         description="User not authenticated",
@@ -259,7 +239,6 @@ class CartController extends AbstractController
         return $this->json(['message' => 'User does not have a cart'], 404);
     }
 
-    // Find the corresponding CartItem for the product
     $cartItem = null;
     foreach ($cart->getCartItems() as $item) {
         if ($item->getProducts() === $product) {
@@ -272,10 +251,8 @@ class CartController extends AbstractController
         $quantity = $cartItem->getQuantity();
         
         if ($quantity > 1) {
-            // If there is more than one item, decrement the quantity
             $cartItem->setQuantity($quantity - 1);
         } else {
-            // If there is only one item, remove the CartItem entirely
             $cart->removeCartItem($cartItem);
         }
 
@@ -285,34 +262,31 @@ class CartController extends AbstractController
     }
 
     return $this->json(['message' => 'Product not found in the cart'], 404);
-}
-}
-
-    /* public function removeProductFromCart(int $productId): JsonResponse
-    {
-        $user = $this->getUser();
-
-        if (!$user) {
-            return $this->json(['message' => 'User not authenticated'], 401);
-        }
-
-        $product = $this->entityManager->getRepository(Products::class)->find($productId);
-
-        if (!$product) {
-            return $this->json(['message' => 'Product not found'], 404);
-        }
-
-        $cart = $user->getCart();
-
-        if (!$cart) {
-            return $this->json(['message' => 'User does not have a cart'], 404);
-        }
-
-        $cart->removeProduct($product);
-
-        $this->entityManager->flush();
-
-        return $this->json(['message' => 'Product removed from cart']);
     }
+
+   // #[Route('api/cart/total-price', name: 'cart_total_price', methods: ['GET'])]
+    /**
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns the total price of products in the cart.",
+     *     @Model(type=CartItem::class)
+     * )
+     * @OA\Tag(name="Cart")
+     * @Security(name="Bearer")
+     * @Route("/api/cart/total-price", name="cart_total_price", methods={"GET"})
+     */ 
+
+    public function getCartTotalPrice()
+    {
+        $cartItems = $this->entityManager->getRepository(CartItem::class)->findBy(['cart' => $this->getUser()->getCart()]);
+
+        $totalPrice = 0;
+        foreach ($cartItems as $cartItem) {
+            $totalPrice += $cartItem->getProducts()->getPrice() * $cartItem->getQuantity();
+        }
+
+        return new JsonResponse(['total_price' => $totalPrice]);
+    }
+
+
 }
- */

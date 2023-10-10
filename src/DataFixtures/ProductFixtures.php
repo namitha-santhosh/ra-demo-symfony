@@ -66,7 +66,6 @@ class ProductFixtures extends Fixture
         $product5->setCategory($this->getReference('category_1'));
         $manager->persist($product5);
 
-        // Electronic Appliances
         $product6 = new Products();
         $product6->setProductName('Smartphone');
         $product6->setProductCode('EAP-1001');
@@ -100,7 +99,6 @@ class ProductFixtures extends Fixture
         $product8->setCategory($this->getReference('category_1'));
         $manager->persist($product8);
 
-        // Hand Tools
         $product9 = new Products();
         $product9->setProductName('Screwdriver Set');
         $product9->setProductCode('HT-4001');
@@ -134,7 +132,6 @@ class ProductFixtures extends Fixture
         $product11->setCategory($this->getReference('category_3'));
         $manager->persist($product11);
 
-        // Kitchen Utensils
         $product12 = new Products();
         $product12->setProductName('Chef\'s Knife');
         $product12->setProductCode('KU-7001');
@@ -178,6 +175,116 @@ class ProductFixtures extends Fixture
         $product15->setImageUrl('assets/images/cutting_board.png');
         $product15->setCategory($this->getReference('category_2'));
         $manager->persist($product15);
+
+        $product16 = new Products();
+        $product16->setProductName('Tennis Racket');
+        $product16->setProductCode('SP-1001');
+        $product16->setReleaseDate('August 15, 2023');
+        $product16->setDescription('Professional-grade tennis racket for improved performance');
+        $product16->setPrice(89.99);
+        $product16->setStarRating(4.6);
+        $product16->setImageUrl('assets/images/tennis_racket.png');
+        $product16->setCategory($this->getReference('category_4'));
+        $manager->persist($product16);
+
+        $product17 = new Products();
+        $product17->setProductName('Mountain Bike');
+        $product17->setProductCode('SP-2002');
+        $product17->setReleaseDate('July 25, 2023');
+        $product17->setDescription('Durable mountain bike with front suspension');
+        $product17->setPrice(499.99);
+        $product17->setStarRating(4.8);
+        $product17->setImageUrl('assets/images/mountain_bike.png');
+        $product17->setCategory($this->getReference('category_4'));
+        $manager->persist($product17);
+
+        $product18 = new Products();
+        $product18->setProductName('Soccer Ball');
+        $product18->setProductCode('SP-3003');
+        $product18->setReleaseDate('June 8, 2023');
+        $product18->setDescription('Official size and weight soccer ball');
+        $product18->setPrice(24.99);
+        $product18->setStarRating(4.4);
+        $product18->setImageUrl('assets/images/soccer_ball.png');
+        $product18->setCategory($this->getReference('category_4'));
+        $manager->persist($product18);
+
+        $product19 = new Products();
+        $product19->setProductName('Yoga Mat');
+        $product19->setProductCode('SP-4004');
+        $product19->setReleaseDate('May 12, 2023');
+        $product19->setDescription('Non-slip yoga mat for comfortable workouts');
+        $product19->setPrice(19.95);
+        $product19->setStarRating(4.5);
+        $product19->setImageUrl('assets/images/yoga_mat.png');
+        $product19->setCategory($this->getReference('category_4'));
+        $manager->persist($product19);
+
+        $product20 = new Products();
+        $product20->setProductName('Basketball Hoop');
+        $product20->setProductCode('SP-5005');
+        $product20->setReleaseDate('April 3, 2023');
+        $product20->setDescription('Adjustable height basketball hoop for home use');
+        $product20->setPrice(129.99);
+        $product20->setStarRating(4.7);
+        $product20->setImageUrl('assets/images/basketball_hoop.png');
+        $product20->setCategory($this->getReference('category_4'));
+        $manager->persist($product20);
+
+        $product21 = new Products();
+        $product21->setProductName('Hiking Backpack');
+        $product21->setProductCode('SP-6006');
+        $product21->setReleaseDate('February 20, 2023');
+        $product21->setDescription('Large capacity hiking backpack with hydration system');
+        $product21->setPrice(79.99);
+        $product21->setStarRating(4.3);
+        $product21->setImageUrl('assets/images/hiking_backpack.png');
+        $product21->setCategory($this->getReference('category_4'));
+        $manager->persist($product21);
+
+        $product22 = new Products();
+        $product22->setProductName('Treadmill');
+        $product22->setProductCode('SP-7007');
+        $product22->setReleaseDate('March 29, 2023');
+        $product22->setDescription('Foldable treadmill for home workouts');
+        $product22->setPrice(599.99);
+        $product22->setStarRating(4.6);
+        $product22->setImageUrl('assets/images/treadmill.png');
+        $product22->setCategory($this->getReference('category_4'));
+        $manager->persist($product22);
+
+        $product23 = new Products();
+        $product23->setProductName('Golf Clubs Set');
+        $product23->setProductCode('SP-8008');
+        $product23->setReleaseDate('January 10, 2023');
+        $product23->setDescription('Complete set of golf clubs for beginners');
+        $product23->setPrice(249.99);
+        $product23->setStarRating(4.7);
+        $product23->setImageUrl('assets/images/golf_clubs.png');
+        $product23->setCategory($this->getReference('category_4'));
+        $manager->persist($product23);
+
+        $product24 = new Products();
+        $product24->setProductName('Camping Tent');
+        $product24->setProductCode('SP-9009');
+        $product24->setReleaseDate('December 5, 2022');
+        $product24->setDescription('4-person waterproof camping tent');
+        $product24->setPrice(89.95);
+        $product24->setStarRating(4.4);
+        $product24->setImageUrl('assets/images/camping_tent.png');
+        $product24->setCategory($this->getReference('category_4'));
+        $manager->persist($product24);
+
+        $product25 = new Products();
+        $product25->setProductName('Dumbbell Set');
+        $product25->setProductCode('SP-10010');
+        $product25->setReleaseDate('November 18, 2022');
+        $product25->setDescription('Adjustable dumbbell set for home fitness');
+        $product25->setPrice(149.99);
+        $product25->setStarRating(4.5);
+        $product25->setImageUrl('assets/images/dumbbell_set.png');
+        $product25->setCategory($this->getReference('category_4'));
+        $manager->persist($product25);
 
         $manager->flush();
 
