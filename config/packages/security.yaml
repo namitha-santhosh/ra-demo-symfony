@@ -24,6 +24,15 @@ security:
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure  
                 username_path: email
+        admin_login:
+            pattern: ^/admin 
+            form_login:
+                login_path: admin_login 
+                check_path: admin_login_check 
+            logout:
+                path: admin_logout 
+                target: admin_login 
+
         api:
             pattern:   ^/api
             stateless: true
@@ -49,6 +58,8 @@ security:
         - { path: ^/api/doc, roles: PUBLIC_ACCESS  }
         # - { path: ^/admin, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/admin/login, roles: PUBLIC_ACCESS } 
+        - { path: ^/admin, roles: ROLE_ADMIN } 
         # - { path: ^/profile, roles: ROLE_USER }
 
 when@test:

@@ -20,6 +20,16 @@ api_login_check:
 logout:
     path: /api/logout
 
+admin_login:
+    path: /admin/login
+    controller: App\Controller\Admin\AdminLoginController::login
+
+admin_login_check:
+    path: /admin/login_check
+
+admin_logout:
+    path: /admin/logout
+
 remove_product:
     path: /api/cart/remove-product/{productId}
     controller: App\Controller\CartController::removeProductFromCart

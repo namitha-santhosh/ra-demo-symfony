@@ -38,7 +38,6 @@ class DashboardController extends AbstractDashboardController
         $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
 
         return $this->redirect($adminUrlGenerator->setController(CartCrudController::class)->generateUrl());
-        // Rest of your code...
     }
     public function configureMenuItems(): iterable
     {
@@ -60,6 +59,5 @@ class DashboardController extends AbstractDashboardController
         ];
     }
 
-    // Rest of your class...
 }
 

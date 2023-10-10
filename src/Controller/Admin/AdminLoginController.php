@@ -12,9 +12,12 @@ use Symfony\Component\Security\Core\Security;
 class AdminLoginController extends AbstractController
 {
     #[Route('/admin/login', name: 'admin_login')]
-    public function login(Request $request): Response
+    public function login(Request $request, Security $security): Response
     {
-        // Render your login form here...
+        if ($security->isGranted('ROLE_ADMIN')) {
+            return $this->redirectToRoute('admin');
+        }
+        
         return $this->render('admin/login.html.twig', [
             'error' => $this->getAuthenticationError($request),
         ]);
@@ -25,5 +28,11 @@ class AdminLoginController extends AbstractController
         // Check for authentication errors and return an error message if needed.
         // You can access the error message from the session.
         return $request->getSession()->get(Security::AUTHENTICATION_ERROR);
+    }
+
+    #[Route('/admin/logout', name: 'admin_logout')]
+    public function logout()
+    {
+    // This controller action doesn't need to contain any logic.
     }
 }
