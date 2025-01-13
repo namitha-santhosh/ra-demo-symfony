@@ -30,12 +30,6 @@ admin_login_check:
 admin_logout:
     path: /admin/logout
 
-remove_product:
-    path: /api/cart/remove-product/{productId}
-    controller: App\Controller\CartController::removeProductFromCart
-    methods: [POST]
-
-
 app.swagger_ui:
     path: /api/doc
     methods: GET

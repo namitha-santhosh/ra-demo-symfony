@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Artifact;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
@@ -14,11 +15,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
-use App\Entity\Cart;
-use App\Entity\CartItem;
-use App\Entity\Products;
-use App\Entity\Category;
+use App\Entity\Release;
 use App\Entity\User;
+use App\Entity\Deployment;
 use Symfony\Component\Security\Core\Authorization\Annotation\IsGranted;
 
 
@@ -37,24 +36,24 @@ class DashboardController extends AbstractDashboardController
 
         $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
 
-        return $this->redirect($adminUrlGenerator->setController(CartCrudController::class)->generateUrl());
+        return $this->redirect($adminUrlGenerator->setController(ReleaseCrudController::class)->generateUrl());
     }
     public function configureMenuItems(): iterable
     {
         return [
             MenuItem::linkToDashboard('Dashboard', 'fa fa-home'),
 
-            MenuItem::section('Products'),
-            MenuItem::linkToCrud('Categories', 'fa fa-tags', Category::class),
-            MenuItem::linkToCrud('Products', 'fa fa-file-text', Products::class),
+            MenuItem::section('Releases'),
+            MenuItem::linkToCrud('Releases', 'fa fa-tags', Release::class),
 
             MenuItem::section('Users'),
             MenuItem::linkToCrud('Users', 'fa fa-user', User::class),
 
-            MenuItem::section('Cart'),
-            MenuItem::linkToCrud('Cart', 'fa fa-comment', Cart::class),
-            MenuItem::linkToCrud('CartItem', 'fa fa-comment', CartItem::class),
+            MenuItem::section('Artifacts'),
+            MenuItem::linkToCrud('Artifact', 'fa fa-comment', Artifact::class),
 
+            MenuItem::section('Deployment'),
+            MenuItem::linkToCrud('Deployment', 'fa fa-comment', Deployment::class),
 
         ];
     }

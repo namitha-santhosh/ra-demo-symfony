@@ -43,9 +43,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::BIGINT, nullable: true)]
     private ?string $Contact = null;
 
-    #[ORM\OneToOne(mappedBy: 'username', cascade: ['persist', 'remove'])]
-    private ?Cart $cart = null;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -141,23 +138,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setContact(?string $Contact): static
     {
         $this->Contact = $Contact;
-
-        return $this;
-    }
-
-    public function getCart(): ?Cart
-    {
-        return $this->cart;
-    }
-
-    public function setCart(Cart $cart): static
-    {
-        // set the owning side of the relation if necessary
-        if ($cart->getUsername() !== $this) {
-            $cart->setUsername($this);
-        }
-
-        $this->cart = $cart;
 
         return $this;
     }
