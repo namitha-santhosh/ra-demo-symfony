@@ -22,15 +22,7 @@ class ArtifactCrudController extends AbstractCrudController
     {
         return [
             IdField::new('id')->hideOnForm(),
-            TextField::new('name', 'Artifact Name'),
-            TextField::new('version', 'Artifact Version'),
-            TextField::new('status', 'Artifact Status'),
-            NumberField::new('buildNum', 'Build Number'),
-            TextField::new('referenceNumber', 'Source Reference'),
-            DateField::new('buildDateTime', 'Build Date Time'),
-            AssociationField::new('release')
-                ->hideOnForm()
-                ->onlyOnDetail(),
+            TextField::new('name', 'Artifact Name')
         ];
     }
 }

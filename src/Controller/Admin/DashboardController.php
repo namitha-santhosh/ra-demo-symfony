@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Artifact;
+use App\Entity\ArtifactRelease;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
@@ -51,6 +52,9 @@ class DashboardController extends AbstractDashboardController
 
             MenuItem::section('Artifacts'),
             MenuItem::linkToCrud('Artifact', 'fa fa-comment', Artifact::class),
+
+            MenuItem::section('Release Artifacts'),
+            MenuItem::linkToCrud('ArtifactRelease', 'fa fa-comment', ArtifactRelease::class),
 
             MenuItem::section('Deployment'),
             MenuItem::linkToCrud('Deployment', 'fa fa-comment', Deployment::class),

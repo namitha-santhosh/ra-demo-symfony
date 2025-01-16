@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Entity\Artifact;
+use App\Entity\ArtifactRelease;
 use App\Entity\Release;
 use App\Repository\ArtifactRepository;
 use App\Repository\ReleaseRepository;
@@ -28,124 +29,91 @@ class ArtifactController extends AbstractController
     #[Route('api/releases/{releaseName}/artifacts', name: 'get_release_artifacts', methods: ['GET'])]
     public function getReleaseArtifacts(string $releaseName): JsonResponse
     {
-        $artifacts = $this->artifactRepository->findByReleaseName($releaseName);
-        $data = array_map(function ($artifact) {
-            return [
-                'id' => $artifact->getId(),
-                'name' => $artifact->getName(),
-                'status' => $artifact->getStatus(),
-                'version' => $artifact->getVersion(),
-                'buildNum' => $artifact->getBuildNum(),
-                'referenceNumber' => $artifact->getReferenceNumber(),
-                'buildDateTime' => $artifact->getBuildDateTime()?->format('Y-m-d H:i:s'),
-            ];
-        }, $artifacts);
-    
-        return $this->json($data);
-    }
-
-    #[Route('api/releases/{releaseName}/artifacts/{artifactName}', name: 'create_or_update_artifact', methods: ['PUT'])]
-    public function createOrUpdateArtifact(string $releaseName, string $artifactName, Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        
-        // Fetch the release entity using the release name
         $release = $this->releaseRepository->findOneBy(['name' => $releaseName]);
-
         if (!$release) {
             return $this->json(['message' => 'Release not found'], Response::HTTP_NOT_FOUND);
         }
 
-        // Try to find the artifact
-        $artifact = $this->artifactRepository->findOneBy([
-            'name' => $artifactName
-        ]);
+        $artifactReleases = $release->getArtifactReleases();
 
-        if (!$artifact) {
-            // Create a new artifact if it doesn't exist
-            $artifact = new Artifact();
-            $artifact->setName($artifactName);
-        }
+        $data = array_map(function (ArtifactRelease $artifactRelease) {
+            return [
+                'artifactId' => $artifactRelease->getArtifact()->getId(),
+                'artifactName' => $artifactRelease->getArtifact()->getName(),
+                'status' => $artifactRelease->getStatus(),
+                'version' => $artifactRelease->getVersion(),
+                'buildNum' => $artifactRelease->getBuildNum(),
+                'buildDateTime' => $artifactRelease->getBuildDateTime()->format('Y-m-d H:i:s'),
+                'referenceNumber' => $artifactRelease->getSourceRef(),
+            ];
+        }, $artifactReleases->toArray());
 
-        // Update artifact properties
-        $artifact->setVersion($data['version'] ?? $artifact->getVersion());
-        $artifact->setReferenceNumber($data['referenceNumber'] ?? $artifact->getReferenceNumber());
-        $artifact->setBuildNum($data['buildNum'] ?? $artifact->getBuildNum());
-        $artifact->setBuildDateTime(new \DateTime($data['buildDateTime'] ?? $artifact->getBuildDateTime()?->format('Y-m-d H:i:s')));
-        $artifact->setStatus($data['status'] ?? $artifact->getStatus());
-
-        // Add the release to the artifact (relationship)
-        if (!$artifact->getReleases()->contains($release)) {
-            $artifact->addRelease($release);
-        }
-
-        $this->entityManager->persist($artifact);
-        $this->entityManager->flush();
-
-        return $this->json($artifact, Response::HTTP_OK);
+        return $this->json($data);
     }
 
-    #[Route('api/releases/{releaseName}/artifacts/{artifactName}', name: 'patch_artifact', methods: ['PATCH'])]
-    public function patchArtifact(string $releaseName, string $artifactName, Request $request): JsonResponse
+    #[Route('api/releases/{releaseName}/artifacts/{artifactName}', name: 'create_or_update_artifact_release', methods: ['PUT'])]
+    public function createOrUpdateArtifactRelease(string $releaseName, string $artifactName, Request $request): JsonResponse
     {
-        $artifact = $this->artifactRepository->findOneBy([
-            'name' => $artifactName
-        ]);
-
-        if (!$artifact) {
-            return $this->json(['message' => 'Artifact not found'], Response::HTTP_NOT_FOUND);
-        }
-
         $data = json_decode($request->getContent(), true);
 
-        // Update only the provided fields
-        if (isset($data['name'])) {
-            $artifact->setName($data['name']);
-        }
-        if (isset($data['version'])) {
-            $artifact->setVersion($data['version']);
-        }
-        if (isset($data['referenceNumber'])) {
-            $artifact->setReferenceNumber($data['sourceRef']);
-        }
-        if (isset($data['buildNum'])) {
-            $artifact->setBuildNum($data['buildNum']);
-        }
-        if (isset($data['buildDateTime'])) {
-            $artifact->setBuildDateTime(new \DateTime($data['buildDateTime']));
-        }
-        if (isset($data['status'])) {
-            $artifact->setStatus($data['status']);
+        $release = $this->releaseRepository->findOneBy(['name' => $releaseName]);
+        if (!$release) {
+            return $this->json(['message' => 'Release not found'], Response::HTTP_NOT_FOUND);
         }
 
+        $artifact = $this->artifactRepository->findOneBy(['name' => $artifactName]);
+        if (!$artifact) {
+            $artifact = new Artifact();
+            $artifact->setName($artifactName);
+            $this->entityManager->persist($artifact);
+        }
+
+        // Check if an ArtifactRelease already exists for this artifact and release
+        $artifactRelease = $this->entityManager->getRepository(ArtifactRelease::class)
+            ->findOneBy(['artifact' => $artifact, 'release' => $release]);
+
+        if (!$artifactRelease) {
+            $artifactRelease = new ArtifactRelease();
+            $artifactRelease->setArtifact($artifact);
+            $artifactRelease->setRelease($release);
+        }
+
+        // Update the fields
+        $artifactRelease->setStatus($data['status']);
+        $artifactRelease->setVersion($data['version']);
+        $artifactRelease->setBuildNum($data['buildNum']);
+        $artifactRelease->setBuildDateTime(new \DateTime($data['buildDateTime']));
+        $artifactRelease->setSourceRef($data['sourceRef']);
+
+        $this->entityManager->persist($artifactRelease);
         $this->entityManager->flush();
 
-        return $this->json($artifact, Response::HTTP_OK);
+        return $this->json(['message' => 'Artifact created or updated successfully'], Response::HTTP_OK);
     }
 
     #[Route('api/releases/{releaseName}/artifacts/{artifactName}', name: 'delete_artifact_from_release', methods: ['DELETE'])]
     public function deleteArtifactFromRelease(string $releaseName, string $artifactName): JsonResponse
     {
         $release = $this->releaseRepository->findOneBy(['name' => $releaseName]);
-
         if (!$release) {
             return $this->json(['message' => 'Release not found'], Response::HTTP_NOT_FOUND);
         }
 
         $artifact = $this->artifactRepository->findOneBy(['name' => $artifactName]);
-
         if (!$artifact) {
             return $this->json(['message' => 'Artifact not found'], Response::HTTP_NOT_FOUND);
         }
 
-        // Disassociate the artifact from the release
-        if ($artifact->getReleases()->contains($release)) {
-            $artifact->removeRelease($release);
+        // Find the ArtifactRelease for the specified artifact and release
+        $artifactRelease = $this->entityManager->getRepository(ArtifactRelease::class)
+            ->findOneBy(['artifact' => $artifact, 'release' => $release]);
+
+        if (!$artifactRelease) {
+            return $this->json(['message' => 'ArtifactRelease not found'], Response::HTTP_NOT_FOUND);
         }
 
-        // Set the status to "removed"
-        $artifact->setStatus('removed');
-
+        // Update the status to 'removed'
+        $artifactRelease->setStatus('removed');
         $this->entityManager->flush();
 
         return $this->json(['message' => 'Artifact removed from release'], Response::HTTP_OK);
@@ -155,23 +123,67 @@ class ArtifactController extends AbstractController
     public function getAllArtifacts(): JsonResponse
     {
         $artifacts = $this->artifactRepository->findAll();
-        $data = array_map(function ($artifact) {
-            $releaseNames = array_map(function ($release) {
-                return $release->getName();
-            }, $artifact->getReleases()->toArray());
-    
+
+        $data = array_map(function (Artifact $artifact) {
             return [
                 'id' => $artifact->getId(),
                 'name' => $artifact->getName(),
-                'status' => $artifact->getStatus(),
-                'version' => $artifact->getVersion(),
-                'buildNum' => $artifact->getBuildNum(),
-                'referenceNumber' => $artifact->getReferenceNumber(),
-                'buildDateTime' => $artifact->getBuildDateTime()?->format('Y-m-d H:i:s'),
-                'releaseNames' => $releaseNames,
+                'releases' => array_map(function (ArtifactRelease $artifactRelease) {
+                    return [
+                        'releaseName' => $artifactRelease->getRelease()->getName(),
+                        'status' => $artifactRelease->getStatus(),
+                        'version' => $artifactRelease->getVersion(),
+                        'buildNum' => $artifactRelease->getBuildNum(),
+                        'buildDateTime' => $artifactRelease->getBuildDateTime()->format('Y-m-d H:i:s'),
+                        'referenceNumber' => $artifactRelease->getSourceRef(),
+                    ];
+                }, $artifact->getArtifactReleases()->toArray()),
             ];
         }, $artifacts);
-    
+
         return $this->json($data);
-    }    
+    }
+
+    #[Route('api/releases/{releaseName}/artifacts/{artifactName}', name: 'patch_artifact_release', methods: ['PATCH'])]
+    public function patchArtifactRelease(string $releaseName, string $artifactName, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $release = $this->releaseRepository->findOneBy(['name' => $releaseName]);
+        if (!$release) {
+            return $this->json(['message' => 'Release not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $artifact = $this->artifactRepository->findOneBy(['name' => $artifactName]);
+        if (!$artifact) {
+            return $this->json(['message' => 'Artifact not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $artifactRelease = $this->entityManager->getRepository(ArtifactRelease::class)
+            ->findOneBy(['artifact' => $artifact, 'release' => $release]);
+
+        if (!$artifactRelease) {
+            return $this->json(['message' => 'ArtifactRelease not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        if (isset($data['status'])) {
+            $artifactRelease->setStatus($data['status']);
+        }
+        if (isset($data['version'])) {
+            $artifactRelease->setVersion($data['version']);
+        }
+        if (isset($data['buildNum'])) {
+            $artifactRelease->setBuildNum($data['buildNum']);
+        }
+        if (isset($data['buildDateTime'])) {
+            $artifactRelease->setBuildDateTime(new \DateTime($data['buildDateTime']));
+        }
+        if (isset($data['sourceRef'])) {
+            $artifactRelease->setSourceRef($data['sourceRef']);
+        }
+
+        $this->entityManager->flush();
+
+        return $this->json(['message' => 'Artifact release updated successfully'], Response::HTTP_OK);
+    }
 }

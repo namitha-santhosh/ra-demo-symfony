@@ -35,15 +35,15 @@ class Release
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $mainReleaseTicket = null;
 
-    #[ORM\ManyToMany(targetEntity: Artifact::class, mappedBy: 'releases')]
-    private Collection $artifacts;
-
     #[ORM\OneToMany(mappedBy: 'release', targetEntity: Deployment::class)]
     private Collection $deployments;
 
+    #[ORM\OneToMany(mappedBy: 'release', targetEntity: ArtifactRelease::class, cascade: ['persist', 'remove'])]
+    private Collection $artifactReleases;
+
     public function __construct()
     {
-        $this->artifacts = new ArrayCollection();
+        $this->artifactReleases = new ArrayCollection();
         $this->deployments = new ArrayCollection();
     }
 
@@ -57,7 +57,7 @@ class Release
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(string $name): self
     {
         $this->name = $name;
 
@@ -69,7 +69,7 @@ class Release
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(?string $status): self
     {
         $this->status = $status;
 
@@ -125,59 +125,37 @@ class Release
     }
 
     /**
-     * @return Collection|Artifact[]
+     * @return Collection|ArtifactRelease[]
      */
-    public function getArtifacts(): Collection
+    public function getArtifactReleases(): Collection
     {
-        return $this->artifacts;
+        return $this->artifactReleases;
     }
 
-    public function addArtifact(Artifact $artifact): self
+    public function addArtifactRelease(ArtifactRelease $artifactRelease): self
     {
-        if (!$this->artifacts->contains($artifact)) {
-            $this->artifacts[] = $artifact;
-            $artifact->addRelease($this);
+        if (!$this->artifactReleases->contains($artifactRelease)) {
+            $this->artifactReleases[] = $artifactRelease;
+            $artifactRelease->setRelease($this);
         }
 
         return $this;
     }
 
-    public function removeArtifact(Artifact $artifact): self
+    public function removeArtifactRelease(ArtifactRelease $artifactRelease): self
     {
-        if ($this->artifacts->removeElement($artifact)) {
-            $artifact->removeRelease($this);
-        }
-
-        return $this;
-    }
-
-      /**
-     * @return Collection|Deployment[]
-     */
-    public function getDeployments(): Collection
-    {
-        return $this->deployments;
-    }
-
-    public function addDeployment(Deployment $deployment): self
-    {
-        if (!$this->deployments->contains($deployment)) {
-            $this->deployments[] = $deployment;
-            $deployment->setRelease($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDeployment(Deployment $deployment): self
-    {
-        if ($this->deployments->removeElement($deployment)) {
+        if ($this->artifactReleases->removeElement($artifactRelease)) {
             // set the owning side to null (unless already changed)
-            if ($deployment->getRelease() === $this) {
-                $deployment->setRelease(null);
+            if ($artifactRelease->getRelease() === $this) {
+                $artifactRelease->setRelease(null);
             }
         }
 
         return $this;
+    }
+
+    public function __toString()
+    {
+        return $this->name;
     }
 }

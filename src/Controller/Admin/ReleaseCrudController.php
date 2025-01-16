@@ -28,10 +28,7 @@ class ReleaseCrudController extends AbstractCrudController
             DateField::new('qaDate', 'QA Date'),
             DateField::new('stageDate', 'Stage Date'),
             DateField::new('productionDate', 'Production Date'),
-            AssociationField::new('artifacts')
-                ->hideOnForm()
-                ->setTemplatePath('admin/fields/artifacts.html.twig')
-                ->onlyOnDetail(),
+            AssociationField::new('artifactReleases', 'Artifact'),
         ];
     }
 }
