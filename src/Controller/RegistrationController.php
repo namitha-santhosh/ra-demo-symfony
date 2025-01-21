@@ -37,7 +37,6 @@ class RegistrationController extends AbstractController
         $user = new User();
         $user->setFullName($data['fullname']);
         $user->setEmail($data['email']);
-        $user->setContact($data['contact']);
 
         $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
         $user->setPassword($hashedPassword);
@@ -53,9 +52,9 @@ class RegistrationController extends AbstractController
     private function sendRegistrationEmail(User $user, MailerInterface $mailer, Environment $twig)
     {
         $email = (new Email())
-            ->from('tandmprodtest@gmail.com')
+            ->from('quantumreleasep10@gmail.com')
             ->to($user->getEmail())
-            ->subject('T&M Registration Confirmation')
+            ->subject('QuantumRelease Registration Confirmation')
             ->html($twig->render('emails/registration.html.twig'));
 
         $mailer->send($email);

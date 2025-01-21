@@ -9,6 +9,7 @@ class UserFixtures extends Fixture{
     public function load(ObjectManager $manager): void{
     $user = new User();
     $user->setEmail('admin@gmail.com');
+    $user->setFullname('Admin');
     $hashedPassword = password_hash('admin123', PASSWORD_BCRYPT);
         $user->setPassword($hashedPassword);
     $user->setRoles(['ROLE_ADMIN']);
@@ -16,9 +17,10 @@ class UserFixtures extends Fixture{
 
     $user2 = new User();
     $user2->setEmail('namitha@gmail.com');
+    $user2->setFullname('Namitha');
     $hashedPassword = password_hash('hello', PASSWORD_BCRYPT);
         $user2->setPassword($hashedPassword);
-    $user2->setRoles(['ROLE_USER']);
+    $user2->setRoles(['ROLE_USER', 'ROLE_RA']);
     $manager->persist($user2);
     $manager->flush();
     }
