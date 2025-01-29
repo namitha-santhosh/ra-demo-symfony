@@ -74,22 +74,66 @@ class JenkinsDeploymentService
 
             $locationHeader = $response->getHeaders()['location'][0] ?? null;
             if ($locationHeader) {
-                preg_match('/\/(\d+)\/$/', $locationHeader, $matches);
-                $buildNumber = $matches[1] ?? null;
+                preg_match('/queue\/item\/(\d+)/', $locationHeader, $matches);
+                $queueId = $matches[1] ?? null;
                 
-                $deployment->setBuildNumber($buildNumber);
-                $deployment->setStatus('STARTED');
+                $maxAttempts = 5;
+                $buildNumber = null;
+                
+                for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+                    if ($attempt > 0) {
+                        sleep(2);
+                    }
+                    
+                    $queueEndpoint = sprintf(
+                        '%s/queue/item/%s/api/json',
+                        rtrim($this->jenkinsUrl, '/'),
+                        $queueId
+                    );
+                    
+                    $queueResponse = $this->httpClient->request('GET', $queueEndpoint, [
+                        'auth_basic' => [$this->jenkinsUser, $this->jenkinsToken],
+                        'headers' => [
+                            'Accept' => 'application/json',
+                        ],
+                    ]);
+                    
+                    $queueData = json_decode($queueResponse->getContent(), true);
+                    
+                    if (isset($queueData['executable']['number'])) {
+                        $buildNumber = $queueData['executable']['number'];
+                        break;
+                    }
+    
+                    if (isset($queueData['cancelled']) && $queueData['cancelled']) {
+                        throw new \Exception('Build was cancelled in queue');
+                    }
+                    
+                    if (isset($queueData['blocked']) && $queueData['blocked']) {
+                        throw new \Exception('Build is blocked in queue');
+                    }
+                }
+                
+                if ($buildNumber) {
+                    $deployment->setBuildNumber($buildNumber);
+                    $deployment->setStatus('STARTED');
+                } else {
+                    $deployment->setStatus('QUEUED');
+                    $deployment->setParameters(array_merge($deployment->getParameters(), ['queueId' => $queueId]));
+                }
+                
                 $this->entityManager->flush();
             }
-
+    
             return [
                 'status' => $response->getStatusCode(),
                 'deploymentId' => $deployment->getId(),
                 'buildNumber' => $buildNumber ?? null,
+                'queueId' => $queueId ?? null,
                 'releaseName' => $releaseName,
                 'parameters' => $jenkinsParameters
             ];
-
+    
         } catch (\Exception $e) {
             $deployment->setStatus('FAILED');
             $this->entityManager->flush();

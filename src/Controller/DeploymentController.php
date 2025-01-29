@@ -75,6 +75,40 @@ class DeploymentController extends AbstractController
         ]);
     }
 
+    #[Route('/api/jenkins/webhook', name: 'api_jenkins_webhook', methods: ['POST'])]
+    public function jenkinsWebhook(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        $buildNumber = $data['build']['number'] ?? null;
+        $buildResult = $data['build']['status'] ?? $data['build']['phase'] ?? null;
+        $jobName = $data['name'] ?? null;
+
+        if ($buildNumber && $jobName) {
+            $deployment = $this->entityManager->getRepository(Deployment::class)
+                ->findOneBy([
+                    'jobName' => $jobName,
+                    'buildNumber' => $buildNumber
+                ]);
+
+            if ($deployment) {
+                $status = match ($buildResult) {
+                    'SUCCESS' => 'SUCCESS',
+                    'FAILURE' => 'FAILED',
+                    'ABORTED' => 'ABORTED',
+                    'UNSTABLE' => 'UNSTABLE',
+                    'STARTED', 'IN_PROGRESS' => 'IN_PROGRESS',
+                    default => $deployment->getStatus()
+                };
+
+                $deployment->setStatus($status);
+                $this->entityManager->flush();
+            }
+        }
+
+        return new JsonResponse(['status' => 'ok']);
+    }
+
     private function formatDeployments(array $deployments): array
     {
         return array_map(function($deployment) {
