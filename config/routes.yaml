@@ -25,10 +25,10 @@ admin_login:
     controller: App\Controller\Admin\AdminLoginController::login
 
 admin_login_check:
-    path: /admin/login_check
+    path: /api/admin/login_check
 
 admin_logout:
-    path: /admin/logout
+    path: /api/admin/logout
 
 app.swagger_ui:
     path: /api/doc

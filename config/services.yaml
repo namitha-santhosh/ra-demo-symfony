@@ -23,5 +23,11 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    App\Service\JenkinsDeploymentService:
+        arguments:
+            $jenkinsUrl: '%env(JENKINS_URL)%'
+            $jenkinsUser: '%env(JENKINS_USER)%'
+            $jenkinsToken: '%env(JENKINS_API_TOKEN)%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

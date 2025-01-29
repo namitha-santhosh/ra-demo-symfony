@@ -2,55 +2,146 @@
 
 namespace App\Entity;
 
-use App\Repository\DeploymentRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\DeploymentRepository;
+
 
 #[ORM\Entity(repositoryClass: DeploymentRepository::class)]
+#[ORM\Table(name: 'deployments')]
 class Deployment
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'integer')]
+    private $id;
 
-    #[ORM\Column(length: 255)]
-    private ?string $slug = null;
+    #[ORM\Column(type: 'string', length: 255)]
+    private $jobName;
 
-    #[ORM\ManyToOne(targetEntity: Release::class, inversedBy: 'deployments')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Release $release = null;
+    #[ORM\Column(type: 'json')]
+    private $parameters;
+
+    #[ORM\Column(type: 'string', length: 50)]
+    private $status;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private $buildNumber;
+
+    #[ORM\Column(type: 'datetime')]
+    private $createdAt;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private $updatedAt;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $triggeredBy;
+
+    #[ORM\Column(type: 'string', length: 255)]
+    private $releaseName;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTime();
+        $this->status = 'PENDING';
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getSlug(): ?string
+    public function getJobName(): ?string
     {
-        return $this->slug;
+        return $this->jobName;
     }
-
-    public function setSlug(string $slug): static
+    
+    public function setJobName(string $jobName): self
     {
-        $this->slug = $slug;
-
+        $this->jobName = $jobName;
+        
         return $this;
     }
 
-    public function getRelease(): ?Release
+    public function getParameters(): ?array
     {
-        return $this->release;
+        return $this->parameters;
     }
 
-    public function setRelease(?Release $release): self
+    public function setParameters(array $parameters): self
     {
-        $this->release = $release;
-
+        $this->parameters = $parameters;
+        
         return $this;
     }
 
-    public function __toString()
+    public function getStatus(): ?string
     {
-        return $this->slug;
+        return $this->status;
     }
+
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
+        
+        return $this;
+    }
+
+    public function getBuildNumber(): ?int
+    {
+        return $this->buildNumber;
+    }
+
+    public function setBuildNumber(int $buildNumber): self
+    {
+        $this->buildNumber = $buildNumber;
+        
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+        
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+        
+        return $this;
+    }
+
+    public function getTriggeredBy(): ?string
+    {
+        return $this->triggeredBy;
+    }
+
+    public function setTriggeredBy(string $triggeredBy): self
+    {
+        $this->triggeredBy = $triggeredBy;
+        
+        return $this;
+    }
+
+     public function getReleaseName(): ?string
+     {
+         return $this->releaseName;
+     }
+ 
+     public function setReleaseName(string $releaseName): self
+     {
+         $this->releaseName = $releaseName;
+         return $this;
+     }
 }

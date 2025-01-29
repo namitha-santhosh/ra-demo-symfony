@@ -11,7 +11,7 @@ use Symfony\Component\Security\Core\Security;
 
 class AdminLoginController extends AbstractController
 {
-    #[Route('/admin/login', name: 'admin_login')]
+    #[Route('/api/admin/login', name: 'admin_login')]
     public function login(Request $request, Security $security): Response
     {
         if ($security->isGranted('ROLE_ADMIN')) {
@@ -30,7 +30,7 @@ class AdminLoginController extends AbstractController
         return $request->getSession()->get(Security::AUTHENTICATION_ERROR);
     }
 
-    #[Route('/admin/logout', name: 'admin_logout')]
+    #[Route('/api/admin/logout', name: 'admin_logout')]
     public function logout()
     {
     // This controller action doesn't need to contain any logic.

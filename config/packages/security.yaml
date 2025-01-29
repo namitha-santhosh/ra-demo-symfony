@@ -25,7 +25,7 @@ security:
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure  
                 username_path: email
         admin_login:
-            pattern: ^/admin 
+            pattern: ^/api/admin 
             form_login:
                 login_path: admin_login 
                 check_path: admin_login_check 

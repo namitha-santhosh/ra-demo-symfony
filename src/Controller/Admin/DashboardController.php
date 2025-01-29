@@ -31,7 +31,7 @@ class DashboardController extends AbstractDashboardController
         $this->security = $security;
     }
 
-    #[Route('/admin', name: 'admin')]
+    #[Route('/api/admin', name: 'admin')]
     public function index(): Response
     {
 

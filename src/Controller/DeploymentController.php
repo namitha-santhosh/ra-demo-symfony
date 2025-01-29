@@ -3,82 +3,92 @@
 namespace App\Controller;
 
 use App\Entity\Deployment;
-use App\Repository\DeploymentRepository;
-use App\Repository\ReleaseRepository;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Service\JenkinsDeploymentService;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class DeploymentController extends AbstractController
 {
-    private DeploymentRepository $deploymentRepository;
-    private ReleaseRepository $releaseRepository;
-    private EntityManagerInterface $entityManager;
-
-    public function __construct(DeploymentRepository $deploymentRepository, ReleaseRepository $releaseRepository, EntityManagerInterface $entityManager)
+    private $entityManager;
+    
+    public function __construct(EntityManagerInterface $entityManager)
     {
-        $this->deploymentRepository = $deploymentRepository;
-        $this->releaseRepository = $releaseRepository;
         $this->entityManager = $entityManager;
     }
 
-    #[Route('api/releases/{releaseName}/deployments', name: 'create_deployment', methods: ['POST'])]
-    public function createDeployment(string $releaseName, Request $request): JsonResponse
+    #[Route('/api/deploy', name: 'api_deploy', methods: ['POST'])]
+    public function deploy(Request $request, JenkinsDeploymentService $jenkinsService): JsonResponse
     {
-        $release = $this->releaseRepository->findOneBy(['name' => $releaseName]);
-
-        if (!$release) {
-            return $this->json(['message' => 'Release not found'], Response::HTTP_NOT_FOUND);
+        $rawContent = $request->getContent();
+        
+        $parameters = json_decode($rawContent, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return new JsonResponse(['error' => 'Invalid JSON'], 400);
+        }
+        
+        if (!isset($parameters['appName'], $parameters['appVersion'], $parameters['deployEnv'])) {
+            return new JsonResponse([
+                'error' => 'Missing required parameters. Please provide appName, appVersion, and deployEnv'
+            ], 400);
         }
 
-        $data = json_decode($request->getContent(), true);
-
-        $deployment = new Deployment();
-        $deployment->setSlug($data['slug']);
-        $deployment->setRelease($release);
-
-        $this->entityManager->persist($deployment);
-        $this->entityManager->flush();
-
-        return $this->json(['message' => 'Deployment created successfully'], Response::HTTP_CREATED);
+        try {
+            $result = $jenkinsService->triggerDeployment(
+                'deploymentjob',
+                $parameters['releaseName'],
+                $parameters
+            );
+            
+            return new JsonResponse($result);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => 'Deployment failed: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    #[Route('api/releases/{releaseName}/deployments', name: 'get_release_deployments', methods: ['GET'])]
+    #[Route('/api/deployments', name: 'api_get_deployments', methods: ['GET'])]
+    public function getDeployments(Request $request): JsonResponse
+    {
+        $limit = $request->query->get('limit', 10);
+        $deployments = $this->entityManager->getRepository(Deployment::class)
+            ->findLatestDeployments($limit);
+            
+        return $this->json([
+            'deployments' => $this->formatDeployments($deployments)
+        ]);
+    }
+
+    #[Route('/api/releases/{releaseName}/deployments', name: 'api_get_release_deployments', methods: ['GET'])]
     public function getReleaseDeployments(string $releaseName): JsonResponse
     {
-        $release = $this->releaseRepository->findOneBy(['name' => $releaseName]);
+        $deployments = $this->entityManager->getRepository(Deployment::class)
+            ->findReleaseDeployments($releaseName);
 
-        if (!$release) {
-            return $this->json(['message' => 'Release not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        $deployments = $this->deploymentRepository->findBy(['release' => $release]);
-
-        $data = array_map(function (Deployment $deployment) {
-            return [
-                'id' => $deployment->getId(),
-                'slug' => $deployment->getSlug(),
-            ];
-        }, $deployments);
-
-        return $this->json($data);
+        return $this->json([
+            'releaseName' => $releaseName,
+            'deployments' => $this->formatDeployments($deployments)
+        ]);
     }
 
-    #[Route('api/deployments/{slug}', name: 'delete_deployment', methods: ['DELETE'])]
-    public function deleteDeployment(string $slug): JsonResponse
+    private function formatDeployments(array $deployments): array
     {
-        $deployment = $this->deploymentRepository->findOneBy(['slug' => $slug]);
-
-        if (!$deployment) {
-            return $this->json(['message' => 'Deployment not found'], Response::HTTP_NOT_FOUND);
-        }
-
-        $this->entityManager->remove($deployment);
-        $this->entityManager->flush();
-
-        return $this->json(['message' => 'Deployment deleted successfully'], Response::HTTP_OK);
+        return array_map(function($deployment) {
+            return [
+                'id' => $deployment->getId(),
+                'jobName' => $deployment->getJobName(),
+                'releaseName' => $deployment->getReleaseName(),
+                'parameters' => $deployment->getParameters(),
+                'status' => $deployment->getStatus(),
+                'buildNumber' => $deployment->getBuildNumber(),
+                'triggeredBy' => $deployment->getTriggeredBy(),
+                'createdAt' => $deployment->getCreatedAt()->format('c'),
+                'updatedAt' => $deployment->getUpdatedAt()?->format('c'),
+            ];
+        }, $deployments);
     }
 }
