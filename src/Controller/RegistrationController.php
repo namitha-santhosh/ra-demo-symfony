@@ -44,7 +44,7 @@ class RegistrationController extends AbstractController
         $entityManager->persist($user);
         $entityManager->flush();
 
-        $this->sendRegistrationEmail($user, $mailer, $twig);
+        // $this->sendRegistrationEmail($user, $mailer, $twig);
 
         return new JsonResponse(['message' => 'Sign Up Successful'], 201);
     }
