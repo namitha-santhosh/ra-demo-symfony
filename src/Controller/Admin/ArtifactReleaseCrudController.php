@@ -29,6 +29,7 @@ class ArtifactReleaseCrudController extends AbstractCrudController
             TextField::new('buildNum', 'Build Number'),
             DateField::new('buildDateTime', 'Build Date & Time'),
             TextField::new('sourceRef', 'Reference Number'),
+            TextField::new('status', 'Status'),
         ];
     }
 }
