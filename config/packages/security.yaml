@@ -29,6 +29,7 @@ security:
             form_login:
                 login_path: admin_login 
                 check_path: admin_login_check 
+                default_target_path: admin_dashboard
             logout:
                 path: admin_logout 
                 target: admin_login 

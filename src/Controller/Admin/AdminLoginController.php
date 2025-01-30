@@ -15,7 +15,7 @@ class AdminLoginController extends AbstractController
     public function login(Request $request, Security $security): Response
     {
         if ($security->isGranted('ROLE_ADMIN')) {
-            return $this->redirectToRoute('admin');
+            return $this->redirectToRoute('admin_dashboard');
         }
         
         return $this->render('admin/login.html.twig', [
